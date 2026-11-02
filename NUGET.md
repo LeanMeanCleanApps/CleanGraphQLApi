@@ -64,15 +64,15 @@ A new version is released on the 1st of each month with every change merged sinc
 dotnet new update
 ```
 
-What changed in each version is in the [release notes](https://github.com/stphnwlsh/CleanGraphQLApi/releases). To remove the template, run `dotnet new uninstall CleanGraphQLApi.Template`.
+What changed in each version is in the [release notes](https://github.com/LeanMeanCleanApps/CleanGraphQLApi/releases). To remove the template, run `dotnet new uninstall CleanGraphQLApi.Template`.
 
 ## More help
 
 - [Docs site](https://leanmeancleanapps.github.io/graphql/) for guides, a reference and why it's built this way
-- [README on GitHub](https://github.com/stphnwlsh/CleanGraphQLApi#readme) for the architecture, every feature and the Docker build options
-- [Running guide](https://github.com/stphnwlsh/CleanGraphQLApi/blob/main/docs/RUN.md) for every way to run, configure and test the solution
-- [GitHub issues](https://github.com/stphnwlsh/CleanGraphQLApi/issues) for bugs and ideas
-- [Security policy](https://github.com/stphnwlsh/CleanGraphQLApi/security/policy) to report a vulnerability privately
+- [README on GitHub](https://github.com/LeanMeanCleanApps/CleanGraphQLApi#readme) for the architecture, every feature and the Docker build options
+- [Running guide](https://github.com/LeanMeanCleanApps/CleanGraphQLApi/blob/main/docs/RUN.md) for every way to run, configure and test the solution
+- [GitHub issues](https://github.com/LeanMeanCleanApps/CleanGraphQLApi/issues) for bugs and ideas
+- [Security policy](https://github.com/LeanMeanCleanApps/CleanGraphQLApi/security/policy) to report a vulnerability privately
 
 ## Support
 

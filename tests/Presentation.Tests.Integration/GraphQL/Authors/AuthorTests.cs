@@ -7,15 +7,15 @@ using Common;
 using Shouldly;
 using Xunit;
 
-public class AuthorTests
+public class AuthorTests : IDisposable
 {
-    private static readonly GraphQLApplication Application = new();
+    private readonly GraphQLApplication application = new();
 
     [Fact]
     public async Task Authors_ShouldReturn_AuthorsList()
     {
         // Arrange
-        using var client = Application.CreateClient();
+        using var client = this.application.CreateClient();
 
         // Act
         using var response = await client.GetAsync("/graphql?query={authors(first:50){nodes{id,firstName,lastName,reviewCount,averageStars,reviews{id,stars,movie{id,title}}}}}");
@@ -58,7 +58,7 @@ public class AuthorTests
     public async Task Author_ShouldReturn_Author()
     {
         // Arrange
-        using var client = Application.CreateClient();
+        using var client = this.application.CreateClient();
         using var setupResponse = await client.GetAsync("/graphql?query={authors(first:50){nodes{id}}}");
         var setupResult = (await setupResponse.Content.ReadAsStringAsync()).Deserialize<GraphData>();
         var authorId = setupResult.Data.Authors.Nodes[0].Id;
@@ -97,7 +97,7 @@ public class AuthorTests
     public async Task Author_ShouldReturn_ValidationError()
     {
         // Arrange
-        using var client = Application.CreateClient();
+        using var client = this.application.CreateClient();
 
         // Act
         using var response = await client.GetAsync($"/graphql?query={{author(id:\"{Guid.Empty}\"){{id}}}}");
@@ -118,7 +118,7 @@ public class AuthorTests
     public async Task Author_ShouldReturn_NotFoundError()
     {
         // Arrange
-        using var client = Application.CreateClient();
+        using var client = this.application.CreateClient();
 
         // Act
         using var response = await client.GetAsync($"/graphql?query={{author(id:\"{Guid.NewGuid()}\"){{id}}}}");
@@ -138,7 +138,7 @@ public class AuthorTests
     public async Task Authors_ShouldReturn_FirstPage()
     {
         // Arrange
-        using var client = Application.CreateClient();
+        using var client = this.application.CreateClient();
 
         // Act
         using var response = await client.GetAsync("/graphql?query={authors{totalCount,pageInfo{hasNextPage,hasPreviousPage},nodes{id,firstName,lastName}}}");
@@ -161,7 +161,7 @@ public class AuthorTests
     public async Task Authors_ShouldFilter_ByQuery()
     {
         // Arrange
-        using var client = Application.CreateClient();
+        using var client = this.application.CreateClient();
         using var setupResponse = await client.GetAsync("/graphql?query={authors(first:50){nodes{lastName}}}");
         var term = (await setupResponse.Content.ReadAsStringAsync()).Deserialize<GraphData>().Data.Authors.Nodes[0].LastName.ToLowerInvariant();
 
@@ -178,6 +178,20 @@ public class AuthorTests
         foreach (var author in page.Nodes)
         {
             $"{author.FirstName} {author.LastName}".ShouldContain(term, Case.Insensitive);
+        }
+    }
+
+    public void Dispose()
+    {
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            this.application.Dispose();
         }
     }
 }

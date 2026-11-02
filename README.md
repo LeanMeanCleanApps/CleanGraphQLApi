@@ -1,167 +1,133 @@
-<picture>
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/LeanMeanCleanApps/brand/main/assets/logos/graphql/png/graphql-light-256.png">
-  <img src="https://raw.githubusercontent.com/LeanMeanCleanApps/brand/main/assets/logos/graphql/png/graphql-256.png" alt="Clean GraphQL API logo" width="128" align="right">
-</picture>
-
-# Clean GraphQL API
+[![Clean GraphQL API](https://raw.githubusercontent.com/LeanMeanCleanApps/brand/main/assets/banners/png/graphql.png)](https://leanmeancleanapps.github.io/graphql/)
 
 [![Build Pipeline](https://img.shields.io/github/actions/workflow/status/LeanMeanCleanApps/CleanGraphQLApi/build-pipeline.yml?branch=main&label=Build%20Pipeline&logo=github&style=for-the-badge)](https://github.com/LeanMeanCleanApps/CleanGraphQLApi/actions/workflows/build-pipeline.yml)
 [![NuGet](https://img.shields.io/nuget/v/CleanGraphQLApi.Template?label=NuGet&logo=nuget&logoColor=white&style=for-the-badge)](https://www.nuget.org/packages/CleanGraphQLApi.Template)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/CleanGraphQLApi.Template?label=Downloads&logo=nuget&logoColor=white&style=for-the-badge)](https://www.nuget.org/packages/CleanGraphQLApi.Template)
 [![License](https://img.shields.io/github/license/LeanMeanCleanApps/CleanGraphQLApi?label=License&style=for-the-badge)](LICENSE.md)
-[![GitHub Sponsors](https://img.shields.io/github/sponsors/stphnwlsh?label=Sponsor&logo=githubsponsors&logoColor=white&color=ea4aaa&style=for-the-badge)](https://github.com/sponsors/stphnwlsh)
 
-A `dotnet new` template for a GraphQL API built with a streamlined version of Clean Architecture and [Hot Chocolate](https://chillicream.com/docs/hotchocolate). All the layers you need, none of the ceremony you don't.
+A `dotnet new` template for a GraphQL API using [Hot Chocolate](https://chillicream.com/docs/hotchocolate) in .NET 10, built with a streamlined Clean Architecture. All the layers you need, none of the ceremony you don't.
 
-It's one of five [Lean Mean Clean Apps](https://leanmeancleanapps.github.io/) templates that share the same Application and Infrastructure layers and differ only in how they present them. Same genes, different haircuts. See [Related templates](#related-templates).
+It's one of five [Lean Mean Clean Apps](https://leanmeancleanapps.github.io/) templates. They share the same Application and Infrastructure layers and differ only in how they face the world. Same genes, different haircuts.
 
-The full documentation, with guides, a reference and the reasoning behind every opinion in here, lives at **[leanmeancleanapps.github.io/graphql](https://leanmeancleanapps.github.io/graphql/)**. This README is the short version for people who skim. We see you.
+The guides, the reference and the reasoning behind every opinion live at **[leanmeancleanapps.github.io/graphql](https://leanmeancleanapps.github.io/graphql/)**. This is the version for people who skim. We see you.
 
-## Contents
+## Get started
 
-- [Getting started](#getting-started)
-- [Running the project](#running-the-project)
-- [Architecture](#architecture)
-- [Features](#features)
-- [Releases](#releases)
-- [Related templates](#related-templates)
-- [Resources](#resources)
-- [Contributing](#contributing)
-- [The team](#the-team)
-- [License](#license)
+You need the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0). [Docker](https://www.docker.com/products/docker-desktop) is optional, but it's the quickest way to see it running.
 
-## Getting started
-
-### Prerequisites
-
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-- [Docker](https://www.docker.com/products/docker-desktop) (optional, to build and run the container image)
-
-### Install the template
-
-``` bash
+```bash
+# Install the template
 dotnet new install CleanGraphQLApi.Template
+
+# Create a solution
+dotnet new cleangraphqlapi --name Acme.Reviews --authorName "Your Name"
+cd Acme.Reviews
 ```
 
-### Create a solution
+| Option | What it does |
+| --- | --- |
+| `--name` | Names the solution and its root namespace |
+| `--authorName` | Puts your name on the assembly instead of ours |
+| `--authority` | Your OAuth authorization server. Leave it out and the API runs without authentication |
+| `--audience` | The audience tokens must be issued for, usually the API's own URL |
 
-``` bash
-dotnet new cleangraphqlapi --name {YOUR_SOLUTION_NAMESPACE} --authorName "{YOUR_NAME}"
+That's three layers, three test projects, a Dockerfile and a CI pipeline. Go and tell your team you've been working on it all week.
+
+## Run it
+
+```bash
+# Build the image and start it with sample data, plus Seq for the logs
+docker compose up -d --build
+
+# Ask it for a page of movies
+curl http://localhost:8080/graphql \
+  -H 'Content-Type: application/json' \
+  -d '{ "query": "{ movies(query: \"global\", first: 2) { totalCount nodes { title reviewCount averageStars } } }" }'
 ```
 
-That's it. You now have three layers, three test projects, a Dockerfile and a CI pipeline. Go and tell your team you've been working on it all week.
-
-### Protect the API with bearer tokens (optional)
-
-The API runs without authentication unless you give it an authorization server. Pass one when you create the solution, or set `Authentication:Authority` and `Authentication:Audience` in `appsettings.json` later.
-
-``` bash
-dotnet new cleangraphqlapi --name {YOUR_SOLUTION_NAMESPACE} --authority https://{YOUR_AUTHORIZATION_SERVER} --audience https://{YOUR_API_URL}
+```json
+{
+  "data": {
+    "movies": {
+      "totalCount": 2,
+      "nodes": [
+        {
+          "title": "Assimilated global infrastructure",
+          "reviewCount": 1,
+          "averageStars": 1
+        },
+        {
+          "title": "Automated global alliance",
+          "reviewCount": 3,
+          "averageStars": 3.3
+        }
+      ]
+    }
+  }
+}
 ```
 
-With an authority set, the movie, author and review queries and the review mutations need a JWT bearer token issued by that server for the audience, and return an `AUTH_NOT_AUTHENTICATED` error without one. The `version` query, the schema and Nitro stay open. In Nitro, add the token under the connection's authentication settings.
+Yes, the sample movies are named by a corporate buzzword generator, and the critics are harsh.
 
-## Running the project
+Typing GraphQL into curl is a character-building exercise. Open [Nitro](https://chillicream.com/docs/nitro), the GraphQL IDE, at <http://localhost:8080/graphql> instead, where the schema is documented from the same XML comments as the code.
 
-``` bash
-docker compose up -d
-```
+The `movies`, `authors` and `reviews` queries use Relay-style cursor paging (`first`, `after`, `pageInfo`, `totalCount`). Movies and authors come with their review count and average stars, worked out by the database rather than in a loop somewhere. Ask for their reviews and a [DataLoader](https://chillicream.com/docs/hotchocolate/fetching-data/dataloader) fetches them for the whole page at once, so 50 movies take three queries, not 52. The logs land in Seq at <http://localhost:5341>.
 
-Then open Nitro, the GraphQL IDE, at <http://localhost:8080/graphql>. See [docs/RUN.md](docs/RUN.md) for every way to run it.
+No Docker? `dotnet run --project src/Presentation` works too. Every other way to run it, from plain `docker run` to stamping a version into the image, is in [docs/RUN.md](docs/RUN.md).
 
-The `Dockerfile` has stages for testing, publishing and running, so you can build just the part you need. You can also stamp a version into the assembly.
+The API is open until you give it an authorization server. Pass `--authority` and `--audience` when you create the solution, or set `Authentication:Authority` later, and the movie, author and review queries and the review mutations start asking for a JWT bearer token. The `version` query, the schema and Nitro stay open. [Securing the API](https://leanmeancleanapps.github.io/graphql/guides/secure-the-api/) has the details.
 
-``` bash
-docker build . --target run --tag cleangraphqlapi:latest --build-arg VERSION_PREFIX={VERSION_NUMBER} --build-arg VERSION_SUFFIX={PRERELEASE_NAME}
-```
+## What's inside
 
-## Architecture
+Three layers, loosely based on Clean Architecture. Fewer layers than an onion, more than a sandwich.
 
-This solution is loosely based on Clean Architecture. It's by no means perfect, so I prefer to call it "Lean Mean Clean Architecture". Fewer layers than an onion, more than a sandwich. Inspiration comes from [Jason Taylor's Clean Architecture Template](https://github.com/jasontaylordev/CleanArchitecture), with some ideas taken further and others scaled back.
+- **Presentation** is the GraphQL schema, built by [Hot Chocolate](https://chillicream.com/docs/hotchocolate) with source-generated types. Queries and mutations send each request through [Mediator](https://github.com/martinothamar/Mediator), and Application errors become GraphQL errors with codes in their extensions.
+- **Application** owns the rules. Commands and queries are validated by [FluentValidation](https://github.com/FluentValidation/FluentValidation) and mapped by [Mapperly](https://mapperly.riok.app).
+- **Infrastructure** owns the data, with [Entity Framework Core](https://learn.microsoft.com/ef/core) on SQLite. Everything in it is `internal`, so Presentation can wire it up but can't move in.
 
-There's a little CQRS in the style of the commands and queries, but reads and writes use the same data source underneath. CQRS-curious, not CQRS-committed.
+There's a little CQRS in how commands and queries are shaped, but reads and writes share one database underneath. CQRS-curious, not CQRS-committed.
 
-The one deliberate break from Clean Architecture is that the Presentation project references the Infrastructure project, so it can wire up dependency injection. To protect that boundary, every class in Infrastructure is `internal`, so it can't be used from Presentation by accident. Presentation can introduce itself, but it can't move in.
+And around the edges:
 
-### Project structure
+- **Tests** use [xUnit](https://xunit.net), [Shouldly](https://github.com/shouldly/shouldly) and [NSubstitute](https://github.com/nsubstitute/NSubstitute), with coverage from [Coverlet](https://github.com/coverlet-coverage/coverlet). Each test gets its own throwaway in-memory database, so no test can spoil another one's data.
+- **Sample data** comes from [Bogus](https://github.com/bchavez/Bogus), and only when `Database:SeedSampleData` is on. A real deployment never starts with fake reviews.
+- **Logs** go through [Serilog](https://github.com/serilog/serilog), to the console and to [Seq](https://datalust.co/seq) when you run it with Docker Compose. Health checks answer at `/health/live` and `/health/ready`.
+- **Build rules** live in `Directory.Build.props`. Code style and the recommended analyzers run on every build, warnings fail it, and package versions sit in one place with [Central Package Management](https://learn.microsoft.com/nuget/consume-packages/central-package-management).
+- **The container** runs as a non-root user and has its own health check.
+- **The pipeline** builds, checks formatting, tests with a 95% coverage bar, makes sure the packed template still works, runs [CodeQL](https://codeql.github.com), reviews new dependencies and their licences, starts the image to check it actually answers, and scans the container and Dockerfile with [Trivy](https://trivy.dev). Then it sums the lot up in one comment on your pull request, so you know exactly who to blame. It needs no accounts, tokens or secrets, so your copy works the moment you push it. Trust is earned.
+- **Dependabot** bundles the month's dependency updates into one pull request on the 15th.
 
-1. **Presentation** - Exposes the Application layer as a GraphQL schema. Queries and mutations send commands and queries through Mediator, Application errors become GraphQL errors, and Nitro is included for exploring the schema.
-1. **Application** - Owns the domain and business logic. Commands and queries are validated and handled here, and each domain type has its own repository interface. This layer doesn't care what fulfils those contracts, as long as something does.
-1. **Infrastructure** - Owns the data. It implements the repository interfaces to fetch, create, update and remove data, and maps its own data models onto the Application entities so persistence details don't leak upwards.
-
-## Features
-
-- GraphQL using [Hot Chocolate](https://chillicream.com/docs/hotchocolate) with the [Nitro](https://chillicream.com/docs/nitro) IDE served from `/graphql`
-- Schema descriptions generated from the XML documentation comments on the Application models and resolvers
-- Relay-style cursor paging and search on the `movies`, `authors` and `reviews` queries (`first`, `after`, `pageInfo`, `totalCount`), with each cursor holding the offset the shared Application queries page by
-- List items carry a review count and average stars worked out by the database, and their `reviews` field is loaded for the whole page at once by a [DataLoader](https://chillicream.com/docs/hotchocolate/fetching-data/dataloader), so a page of 50 movies with reviews takes three queries, not 52
-- Optional JWT bearer authentication on the queries and mutations, turned on by setting an authority
-- Logging using [Serilog](https://github.com/serilog/serilog), with [Seq](https://datalust.co/seq) when running in Docker
-- Mediator pattern using [Mediator](https://github.com/martinothamar/Mediator)
-- Validation using [FluentValidation](https://github.com/FluentValidation/FluentValidation) in an Application pipeline behaviour
-- GraphQL errors mapped from Application exceptions, with validation failures and not-found codes in the error extensions
-- Object mapping using [Mapperly](https://mapperly.riok.app)
-- Data stored in [SQLite](https://learn.microsoft.com/ef/core/providers/sqlite/) using [Entity Framework Core](https://learn.microsoft.com/ef/core) migrations, seeded with [Bogus](https://github.com/bchavez/Bogus) only when `Database:SeedSampleData` is on. Each test uses its own throwaway in-memory SQLite database, so tests never touch a real one or each other's data
-- Testing using [xUnit](https://xunit.net), [Shouldly](https://github.com/shouldly/shouldly) and [NSubstitute](https://github.com/nsubstitute/NSubstitute), with coverage from [Coverlet](https://github.com/coverlet-coverage/coverlet)
-- Build rules in `Directory.Build.props`: code style and the recommended analyzers are checked on every build, warnings fail it, and package versions live in one place with [Central Package Management](https://learn.microsoft.com/nuget/consume-packages/central-package-management)
-- CI with GitHub Actions: build, a `dotnet format` check, tests with a 95% coverage bar, a check that the packed template still works, [CodeQL](https://codeql.github.com), a review of new dependencies and their licences, a smoke test of the image, and [Trivy](https://trivy.dev) scans of the container and Dockerfile. It sums the lot up in one comment on your pull request, so you know exactly who to blame, and it needs no accounts, tokens or secrets, so your copy works the moment you push it. Then a monthly NuGet release and GitHub release from `main` using [trusted publishing](https://learn.microsoft.com/nuget/nuget-org/trusted-publishing), with an SPDX bill of materials attached
-- Health checks at `/health/live` and `/health/ready`, using [ASP.NET Core health checks](https://learn.microsoft.com/aspnet/core/host-and-deploy/health-checks)
-- Grouped dependency updates on the 15th of each month using [Dependabot](https://docs.github.com/code-security/dependabot), including the pinned Seq image
-- A Docker image that runs as a non-root user with a health check
+The [architecture page](https://leanmeancleanapps.github.io/graphql/explanation/architecture/) has the long version, with full credit to [Jason Taylor's template](https://github.com/jasontaylordev/CleanArchitecture) and [Uncle Bob](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html) for the ideas.
 
 ## Releases
 
-The template is released once a month. On the 1st, just after 9am US Central time, the pipeline checks for changes since the last release. If anything outside `.github/` has changed, it builds and tests `main`, publishes the new version to [NuGet](https://www.nuget.org/packages/CleanGraphQLApi.Template) and creates a [GitHub release](https://github.com/LeanMeanCleanApps/CleanGraphQLApi/releases) with notes for every pull request merged since the previous one. If nothing has changed, there's no release that month, because nobody needs a new version number for the same code. Dependency updates arrive on the 15th, so they're merged in time for the next release.
+A new version lands on the 1st of each month, as long as something changed, with notes for every pull request in the [GitHub release](https://github.com/LeanMeanCleanApps/CleanGraphQLApi/releases). No changes, no release. We're not here to pad the download stats. Each release also carries an SPDX bill of materials listing every package the API ships with, for anyone whose security team asks nicely (or not so nicely).
 
-Versions keep the `YYYY.MM.DD.RUN` format. Up to the end of October 2026, every merge to `main` was released, so the older releases are much smaller. To release outside the monthly cycle, run the **Build Pipeline** workflow by hand from `main` and untick **dry-run**. Tick **force** to release even when only `.github/` has changed.
-
-To update an installed template to the latest release:
-
-``` bash
+```bash
 dotnet new update
 ```
 
-## Related templates
+## The family
 
-All five templates share the same Application and Infrastructure layers, tests, CI pipeline and repository setup.
-
-| Template | Presentation | Package |
-| --- | --- | --- |
-| [Clean Minimal API](https://github.com/LeanMeanCleanApps/CleanMinimalApi) | ASP.NET Core Minimal APIs | [CleanMinimalApi.Template](https://www.nuget.org/packages/CleanMinimalApi.Template) |
-| [Clean Model Context Protocol](https://github.com/LeanMeanCleanApps/CleanModelContextProtocol) | Model Context Protocol server | [CleanModelContextProtocol.Template](https://www.nuget.org/packages/CleanModelContextProtocol.Template) |
-| **Clean GraphQL API** (this repo) | GraphQL with Hot Chocolate | [CleanGraphQLApi.Template](https://www.nuget.org/packages/CleanGraphQLApi.Template) |
-| [Clean Web API](https://github.com/LeanMeanCleanApps/CleanWebApi) | ASP.NET Core controllers | [CleanWebApi.Template](https://www.nuget.org/packages/CleanWebApi.Template) |
-| [Clean Lambda Function](https://github.com/LeanMeanCleanApps/CleanLambdaFunction) | AWS Lambda function | [CleanLambdaFunction.Template](https://www.nuget.org/packages/CleanLambdaFunction.Template) |
-
-## Resources
-
-This template wouldn't exist without these resources. If you're on your own learning adventure, they're well worth a read. Better than the comments section, anyway.
-
-- [Hot Chocolate - Docs](https://chillicream.com/docs/hotchocolate)
-- [Fiyaz Hasan - GraphQL Series](https://fiyazhasan.me/tag/graphql/)
-- [İlker Aytı - Dotnet Template](https://github.com/iayti/Matech.Sample.Template)
-- [Andrew Lock - Reducing log verbosity with Serilog RequestLogging](https://andrewlock.net/using-serilog-aspnetcore-in-asp-net-core-3-reducing-log-verbosity/)
-- [Jason Taylor - Clean Architecture Solution Template](https://github.com/jasontaylordev/CleanArchitecture)
-- [Robert C. Martin - The Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+| Template | Presentation |
+| --- | --- |
+| [Clean Minimal API](https://github.com/LeanMeanCleanApps/CleanMinimalApi) | ASP.NET Core Minimal APIs |
+| [Clean Model Context Protocol](https://github.com/LeanMeanCleanApps/CleanModelContextProtocol) | Model Context Protocol server |
+| **Clean GraphQL API** | GraphQL with Hot Chocolate, you are here |
+| [Clean Web API](https://github.com/LeanMeanCleanApps/CleanWebApi) | ASP.NET Core controllers |
+| [Clean Lambda Function](https://github.com/LeanMeanCleanApps/CleanLambdaFunction) | AWS Lambda |
 
 ## Contributing
 
-Bug reports, ideas and pull requests are welcome, and typo fixes are welcome with open arms. Please read the [contributing guide](CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT.md) first. To report a security vulnerability, follow the [security policy](SECURITY.md) instead of opening an issue.
+Bug reports, ideas and pull requests are all welcome, and typo fixes doubly so. Start with the [contributing guide](CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT.md). Security problems go through the [security policy](SECURITY.md), not an issue.
 
-## The team
+## Who built this
 
-This template is part of [Lean Mean Clean Apps](https://leanmeancleanapps.github.io/), a small family of .NET templates built and looked after in spare time.
+[<img src="https://github.com/stphnwlsh.png?size=96" width="48" align="left" alt="">](https://github.com/stphnwlsh)
+Built by **Stephen Walsh** in spare time, with strong coffee and a healthy disregard for pomp and ceremony. Say hello on [GitHub](https://github.com/stphnwlsh), [LinkedIn](https://www.linkedin.com/in/stphnwlsh), [Medium](https://stphnwlsh.medium.com) or at [stphnwlsh.github.io](https://stphnwlsh.github.io).
 
-| | Who | What they do | Find them |
-| --- | --- | --- | --- |
-| <img src="https://github.com/stphnwlsh.png?size=96" width="48" alt=""> | **Stephen Walsh** | Maintainer. Builds every template, keeps them current with each .NET release, and drinks the coffee. | [GitHub](https://github.com/stphnwlsh) · [LinkedIn](https://www.linkedin.com/in/stphnwlsh) · [Medium](https://stphnwlsh.medium.com) · [Website](https://stphnwlsh.github.io) |
-
-Want your name in this table? Pull requests are the way in, so start with the [contributing guide](CONTRIBUTING.md). For help using the template, see [SUPPORT.md](SUPPORT.md).
-
-### Support the work
-
-If this template saves you time, please consider [sponsoring the work on GitHub](https://github.com/sponsors/stphnwlsh). It keeps all five templates current with each .NET release, and it keeps the coffee flowing, which is the real dependency here.
+If this template saves you some time, [sponsoring the work](https://github.com/sponsors/stphnwlsh) keeps all five templates current and the coffee flowing, which is the real dependency here.
 
 ## License
 
-Released under the [MIT License](LICENSE.md). Take it, change it, ship it. Just don't blame us for your production incidents.
+[MIT](LICENSE.md). Take it, change it, ship it. Just don't blame us for your N+1 queries. We already fixed ours.

@@ -13,6 +13,7 @@ Start with [Jacques](.agents/agents/jacques.md), our sous-chef and the persona e
 | `src/Presentation` | The Hot Chocolate GraphQL API: queries, mutations, types, inputs, DataLoaders, the error filter, authentication, health checks and startup. |
 | `tests/Application.Tests.Unit` | Handler and validator tests with NSubstitute. |
 | `tests/Infrastructure.Tests.Integration` | Repository tests against a private in-memory SQLite database. |
+| `tests/Presentation.Tests.Unit` | Error filter, cursor and settings tests. |
 | `tests/Presentation.Tests.Integration` | Real GraphQL requests through `WebApplicationFactory`, and the schema snapshot. |
 | `.agents/skills` | How we do each kind of change, one skill per folder. |
 

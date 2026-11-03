@@ -1,4 +1,4 @@
-namespace CleanGraphQLApi.Presentation.Tests.Integration.Authentication;
+namespace CleanGraphQLApi.Presentation.Tests.Unit.Authentication;
 
 using CleanGraphQLApi.Presentation.Authentication;
 using Microsoft.Extensions.Configuration;

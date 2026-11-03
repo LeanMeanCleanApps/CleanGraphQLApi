@@ -35,7 +35,7 @@ Connections sit on top of the shared offset `paging`. `PageExtensions` in `Graph
 1. Name new fields and arguments after the data, not the Application class (`reviews`, not `getReviewsQuery`).
 2. Decide nullability on purpose: non-null for fields that always have a value, nullable for a field whose resolver can throw.
 3. Return a connection for any list that can grow. Never an unbounded list.
-4. Report a new kind of failure as an Application exception and add a case to `ApplicationErrorFilter` with its own code.
+4. Report a new kind of failure as an Application exception and add a case to `ApplicationErrorFilter` with its own code, with a unit test in `tests/Presentation.Tests.Unit/GraphQL/Errors/`.
 5. Test each error code in the field's integration tests (`test-design`).
 
 ## Example

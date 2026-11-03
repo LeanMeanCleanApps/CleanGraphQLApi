@@ -9,7 +9,7 @@ metadata:
 
 ## The rule
 
-The GraphQL layer is tested only through HTTP, in `tests/Presentation.Tests.Integration`. `GraphQLApplication` (a `WebApplicationFactory<Program>`) starts the app with the `local` environment, its own shared-cache in-memory SQLite database and the sample data on. Each test class creates one in a field, implements `IDisposable` and disposes it, so no class shares data with another.
+The GraphQL layer is tested through HTTP in `tests/Presentation.Tests.Integration`. `ApplicationErrorFilter`, `PageExtensions` and `AuthenticationSettings` are also tested on their own in `tests/Presentation.Tests.Unit` (`unit-tests`). `GraphQLApplication` (a `WebApplicationFactory<Program>`) starts the app with the `local` environment, its own shared-cache in-memory SQLite database and the sample data on. Each test class creates one in a field, implements `IDisposable` and disposes it, so no class shares data with another.
 
 | Piece | Where | Use it to |
 | --- | --- | --- |

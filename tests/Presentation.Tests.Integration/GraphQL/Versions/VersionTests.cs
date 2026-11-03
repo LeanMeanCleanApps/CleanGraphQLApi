@@ -6,15 +6,15 @@ using Common;
 using Shouldly;
 using Xunit;
 
-public class VersionTests
+public class VersionTests : IDisposable
 {
-    private static readonly GraphQLApplication Application = new();
+    private readonly GraphQLApplication application = new();
 
     [Fact]
     public async Task Version_ShouldReturn_Version()
     {
         // Arrange
-        using var client = Application.CreateClient();
+        using var client = this.application.CreateClient();
 
         // Act
         using var response = await client.GetAsync("/graphql?query={version{fileVersion,informationalVersion}}");
@@ -27,5 +27,19 @@ public class VersionTests
         _ = result.Data.Version.ShouldNotBeNull();
         result.Data.Version.FileVersion.ShouldNotBeNullOrWhiteSpace();
         result.Data.Version.InformationalVersion.ShouldNotBeNullOrWhiteSpace();
+    }
+
+    public void Dispose()
+    {
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            this.application.Dispose();
+        }
     }
 }

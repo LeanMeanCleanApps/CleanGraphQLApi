@@ -6,15 +6,15 @@ using Common;
 using Shouldly;
 using Xunit;
 
-public class MovieTests
+public class MovieTests : IDisposable
 {
-    private static readonly GraphQLApplication Application = new();
+    private readonly GraphQLApplication application = new();
 
     [Fact]
     public async Task Movies_ShouldReturn_MoviesList()
     {
         // Arrange
-        using var client = Application.CreateClient();
+        using var client = this.application.CreateClient();
 
         // Act
         using var response = await client.GetAsync("/graphql?query={movies(first:50){nodes{id,title,reviewCount,averageStars,reviews{id,stars,author{id,firstName,lastName}}}}}");
@@ -57,7 +57,7 @@ public class MovieTests
     public async Task Movies_ShouldReturn_Movie()
     {
         // Arrange
-        using var client = Application.CreateClient();
+        using var client = this.application.CreateClient();
         using var setupResponse = await client.GetAsync("/graphql?query={movies(first:50){nodes{id,reviews{id}}}}");
         var setupResult = (await setupResponse.Content.ReadAsStringAsync()).Deserialize<GraphData>();
         var movieId = setupResult.Data.Movies.Nodes.First(m => m.Reviews.Length > 0).Id;
@@ -96,7 +96,7 @@ public class MovieTests
     public async Task Movie_ShouldReturn_NotFoundError()
     {
         // Arrange
-        using var client = Application.CreateClient();
+        using var client = this.application.CreateClient();
 
         // Act
         using var response = await client.GetAsync($"/graphql?query={{movie(id:\"{Guid.NewGuid()}\"){{id}}}}");
@@ -118,7 +118,7 @@ public class MovieTests
     public async Task Movies_ShouldReturn_FirstPage()
     {
         // Arrange
-        using var client = Application.CreateClient();
+        using var client = this.application.CreateClient();
 
         // Act
         using var response = await client.GetAsync("/graphql?query={movies(first:5){totalCount,pageInfo{hasNextPage,hasPreviousPage,startCursor,endCursor},edges{cursor,node{id,title}}}}");
@@ -151,7 +151,7 @@ public class MovieTests
     public async Task Movies_ShouldReturn_NextPage()
     {
         // Arrange
-        using var client = Application.CreateClient();
+        using var client = this.application.CreateClient();
         using var firstResponse = await client.GetAsync("/graphql?query={movies(first:5){pageInfo{endCursor},nodes{id}}}");
         var firstPage = (await firstResponse.Content.ReadAsStringAsync()).Deserialize<GraphData>().Data.Movies;
 
@@ -177,7 +177,7 @@ public class MovieTests
     public async Task Movies_ShouldReturn_LastPage()
     {
         // Arrange
-        using var client = Application.CreateClient();
+        using var client = this.application.CreateClient();
         using var firstResponse = await client.GetAsync("/graphql?query={movies(first:45){pageInfo{endCursor}}}");
         var firstPage = (await firstResponse.Content.ReadAsStringAsync()).Deserialize<GraphData>().Data.Movies;
 
@@ -197,7 +197,7 @@ public class MovieTests
     public async Task Movies_ShouldFilter_ByQuery()
     {
         // Arrange
-        using var client = Application.CreateClient();
+        using var client = this.application.CreateClient();
         using var setupResponse = await client.GetAsync("/graphql?query={movies(first:50){nodes{title}}}");
         var term = (await setupResponse.Content.ReadAsStringAsync()).Deserialize<GraphData>().Data.Movies.Nodes[0].Title.Split(' ')[0].ToUpperInvariant();
 
@@ -225,7 +225,7 @@ public class MovieTests
     public async Task Movies_ShouldReturn_ValidationError_ForInvalidCursor(string cursor)
     {
         // Arrange
-        using var client = Application.CreateClient();
+        using var client = this.application.CreateClient();
 
         // Act
         using var response = await client.GetAsync($"/graphql?query={{movies(after:\"{Uri.EscapeDataString(cursor)}\"){{totalCount}}}}");
@@ -247,7 +247,7 @@ public class MovieTests
     public async Task Movies_ShouldReturn_Error_WhenPageIsTooLarge()
     {
         // Arrange
-        using var client = Application.CreateClient();
+        using var client = this.application.CreateClient();
 
         // Act
         using var response = await client.GetAsync("/graphql?query={movies(first:51){totalCount}}");
@@ -267,7 +267,7 @@ public class MovieTests
     public async Task Movies_ShouldReturn_EmptyPage_WhenNothingMatches()
     {
         // Arrange
-        using var client = Application.CreateClient();
+        using var client = this.application.CreateClient();
 
         // Act
         using var response = await client.GetAsync("/graphql?query={movies(query:\"zzzz-no-such-movie\"){totalCount,pageInfo{hasNextPage,hasPreviousPage,startCursor,endCursor},nodes{id}}}");
@@ -283,5 +283,19 @@ public class MovieTests
         page.PageInfo.HasPreviousPage.ShouldBeFalse();
         page.PageInfo.StartCursor.ShouldBeNull();
         page.PageInfo.EndCursor.ShouldBeNull();
+    }
+
+    public void Dispose()
+    {
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            this.application.Dispose();
+        }
     }
 }

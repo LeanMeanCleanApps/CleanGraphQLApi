@@ -7,15 +7,15 @@ using System.Threading.Tasks;
 using Shouldly;
 using Xunit;
 
-public class SchemaTests
+public class SchemaTests : IDisposable
 {
-    private static readonly GraphQLApplication Application = new();
+    private readonly GraphQLApplication application = new();
 
     [Fact]
     public async Task Schema_ShouldMatch_Snapshot()
     {
         // Arrange
-        using var client = Application.CreateClient();
+        using var client = this.application.CreateClient();
         var expected = await File.ReadAllTextAsync(Path.Join("GraphQL", "Schema", "schema.graphql"));
 
         // Act
@@ -34,7 +34,7 @@ public class SchemaTests
     public async Task Nitro_ShouldBe_Served()
     {
         // Arrange
-        using var client = Application.CreateClient();
+        using var client = this.application.CreateClient();
         using var request = new HttpRequestMessage(HttpMethod.Get, "/graphql/");
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("text/html"));
 
@@ -49,5 +49,19 @@ public class SchemaTests
     private static string Normalize(string schema)
     {
         return schema.Replace("\r\n", "\n").Trim();
+    }
+
+    public void Dispose()
+    {
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            this.application.Dispose();
+        }
     }
 }

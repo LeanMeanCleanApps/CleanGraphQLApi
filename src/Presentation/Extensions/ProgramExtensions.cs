@@ -24,13 +24,13 @@ public static class ProgramExtensions
     {
         #region Logging
 
-        _ = builder.Host.UseSerilog((hostContext, loggerConfiguration) =>
+        _ = builder.Services.AddSerilog((services, loggerConfiguration) =>
         {
             var assembly = Assembly.GetEntryAssembly();
 
-            _ = loggerConfiguration.ReadFrom.Configuration(hostContext.Configuration)
-                    .Enrich.WithProperty("Assembly Version", assembly?.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version)
-                    .Enrich.WithProperty("Assembly Informational Version", assembly?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion);
+            _ = loggerConfiguration.ReadFrom.Configuration(services.GetRequiredService<IConfiguration>())
+                    .Enrich.WithProperty("AssemblyVersion", assembly?.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version)
+                    .Enrich.WithProperty("AssemblyInformationalVersion", assembly?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion);
         });
 
         #endregion Logging

@@ -30,6 +30,8 @@ Connections sit on top of the shared offset `paging`. `PageExtensions` in `Graph
 | `NotFoundException` | `NOT_FOUND` | The exception's message |
 | Anything else | Hot Chocolate's own | "Unexpected Execution Error", with the exception details hidden unless a debugger is attached |
 
+Hot Chocolate returns an unexpected exception to the client and logs nothing, so the filter logs it as `Error`, with the exception and the field path (`serilog`). The filter is built from the schema's services, so `ProgramExtensions` hands it a logger from the application's with `GetRootServiceProvider()`.
+
 ## Steps
 
 1. Name new fields and arguments after the data, not the Application class (`reviews`, not `getReviewsQuery`).

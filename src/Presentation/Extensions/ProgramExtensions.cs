@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Serilog;
 
 [ExcludeFromCodeCoverage]
@@ -66,7 +67,9 @@ public static class ProgramExtensions
             .AddGraphQLServer()
             .AddPresentationTypes()
             .AddAuthorization()
-            .AddErrorFilter<ApplicationErrorFilter>()
+            // The filter is built from the schema's own services, so its logger comes from the application's.
+            .AddErrorFilter(services => new ApplicationErrorFilter(
+                services.GetRootServiceProvider().GetRequiredService<ILogger<ApplicationErrorFilter>>()))
             .AddMaxExecutionDepthRule(15)
             .ModifyServerOptions(options => options.Tool.ServeMode = ServeMode.Embedded)
             .ModifyPagingOptions(options =>

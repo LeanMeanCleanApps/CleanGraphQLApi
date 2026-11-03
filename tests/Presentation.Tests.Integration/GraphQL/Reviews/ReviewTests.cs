@@ -18,6 +18,11 @@ public class ReviewTests : IDisposable
 
     #region Create
 
+    private const string Errors = "errors{__typename,...on Error{message},...on ValidationError{fields{field,messages}}}";
+    private const string CreateMutation = "mutation($review:CreateReviewInput!){createReview(input:$review){review{id,stars,author{id,firstName,lastName},movie{id,title}}," + Errors + "}}";
+    private const string UpdateMutation = "mutation($review:UpdateReviewInput!){updateReview(input:$review){review{id,stars,author{id},movie{id}}," + Errors + "}}";
+    private const string DeleteMutation = "mutation($review:DeleteReviewInput!){deleteReview(input:$review){reviewId," + Errors + "}}";
+
     [Fact]
     public async Task Create_ShouldCreate_Review()
     {
@@ -27,19 +32,7 @@ public class ReviewTests : IDisposable
         var author = (await authorResponse.Content.ReadAsStringAsync()).Deserialize<GraphData>().Data.Authors.Nodes[0];
         using var movieResponse = await client.GetAsync("/graphql?query={movies(first:50){nodes{id,title}}}");
         var movie = (await movieResponse.Content.ReadAsStringAsync()).Deserialize<GraphData>().Data.Movies.Nodes[0];
-        var content = new CreateReviewInputData
-        {
-            Query = "mutation($review:CreateReviewInput!){createReview(input:$review){id,stars,author{id,firstName,lastName,},movie{id,title}}}",
-            Variables = new Variables
-            {
-                Review = new Review
-                {
-                    AuthorId = author.Id,
-                    MovieId = movie.Id,
-                    Stars = 5
-                }
-            }
-        };
+        var content = CreateContent(author.Id, movie.Id, 5);
 
         // Act
         using var response = await client.PostAsync($"/graphql", content.ToStringContent());
@@ -47,43 +40,29 @@ public class ReviewTests : IDisposable
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        result.Errors.ShouldBeNull();
 
-        _ = result.ShouldNotBeNull();
-        _ = result.Data.ShouldNotBeNull();
+        var payload = result.Data.CreateReview.ShouldNotBeNull();
+        payload.Errors.ShouldBeNull();
 
-        _ = result.Data.CreateReview.ShouldNotBeNull();
-        _ = result.Data.CreateReview.Id.ShouldBeOfType<Guid>();
-        _ = result.Data.CreateReview.Stars.ShouldBeOfType<int>();
-        result.Data.CreateReview.Stars.ShouldBe(5);
+        var review = payload.Review.ShouldNotBeNull();
+        review.Id.ShouldNotBe(Guid.Empty);
+        review.Stars.ShouldBe(5);
 
-        _ = result.Data.CreateReview.Author.ShouldNotBeNull();
-        result.Data.CreateReview.Author.Id.ShouldBe(author.Id);
-        result.Data.CreateReview.Author.FirstName.ShouldBe(author.FirstName);
-        result.Data.CreateReview.Author.LastName.ShouldBe(author.LastName);
+        review.Author.Id.ShouldBe(author.Id);
+        review.Author.FirstName.ShouldBe(author.FirstName);
+        review.Author.LastName.ShouldBe(author.LastName);
 
-        _ = result.Data.CreateReview.Movie.ShouldNotBeNull();
-        result.Data.CreateReview.Movie.Id.ShouldBe(movie.Id);
-        result.Data.CreateReview.Movie.Title.ShouldBe(movie.Title);
+        review.Movie.Id.ShouldBe(movie.Id);
+        review.Movie.Title.ShouldBe(movie.Title);
     }
 
     [Fact]
-    public async Task Create_ShouldNotCreate_Review()
+    public async Task Create_ShouldReturn_ValidationError()
     {
         // Arrange
         using var client = this.application.CreateClient();
-        var content = new CreateReviewInputData
-        {
-            Query = "mutation($review:CreateReviewInput!){createReview(input:$review){id,stars,author{id,firstName,lastName,},movie{id,title}}}",
-            Variables = new Variables
-            {
-                Review = new Review
-                {
-                    AuthorId = Guid.Empty,
-                    MovieId = Guid.Empty,
-                    Stars = 5
-                }
-            }
-        };
+        var content = CreateContent(Guid.Empty, Guid.Empty, 5);
 
         // Act
         using var response = await client.PostAsync($"/graphql", content.ToStringContent());
@@ -91,16 +70,40 @@ public class ReviewTests : IDisposable
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        result.Errors.ShouldBeNull();
 
-        _ = result.ShouldNotBeNull();
+        var payload = result.Data.CreateReview.ShouldNotBeNull();
+        payload.Review.ShouldBeNull();
 
-        _ = result.Data.ShouldNotBeNull();
-        result.Data.CreateReview.ShouldBeNull();
+        var error = payload.Errors.ShouldNotBeNull().ShouldHaveSingleItem();
+        error.TypeName.ShouldBe("ValidationError");
+        error.Message.ShouldBe("One or more validation errors occurred.");
+        error.Fields.ShouldNotBeNull().Select(f => f.Field).ShouldBe(["AuthorId", "MovieId"], ignoreOrder: true);
+    }
 
-        result.Errors.ShouldNotBeEmpty();
-        result.Errors.Count.ShouldBe(1);
-        result.Errors[0].Message.ShouldBe("One or more validation errors occurred.");
-        result.Errors[0].Extensions.Code.ShouldBe("VALIDATION");
+    [Fact]
+    public async Task Create_ShouldReturn_NotFoundError()
+    {
+        // Arrange
+        using var client = this.application.CreateClient();
+        using var movieResponse = await client.GetAsync("/graphql?query={movies(first:1){nodes{id}}}");
+        var movie = (await movieResponse.Content.ReadAsStringAsync()).Deserialize<GraphData>().Data.Movies.Nodes[0];
+        var content = CreateContent(Guid.NewGuid(), movie.Id, 5);
+
+        // Act
+        using var response = await client.PostAsync($"/graphql", content.ToStringContent());
+        var result = (await response.Content.ReadAsStringAsync()).Deserialize<GraphData>();
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        result.Errors.ShouldBeNull();
+
+        var payload = result.Data.CreateReview.ShouldNotBeNull();
+        payload.Review.ShouldBeNull();
+
+        var error = payload.Errors.ShouldNotBeNull().ShouldHaveSingleItem();
+        error.TypeName.ShouldBe("NotFoundError");
+        error.Message.ShouldBe("The Author with the supplied id was not found.");
     }
 
     [Fact]
@@ -110,7 +113,7 @@ public class ReviewTests : IDisposable
         using var client = this.application.CreateClient();
         var content = new CreateReviewInputData
         {
-            Query = "mutation($review:CreateReviewInput!){createReview(input:$review){id,stars,author{id,firstName,lastName,},movie{id,title}}}",
+            Query = CreateMutation,
         };
 
         // Act
@@ -129,6 +132,23 @@ public class ReviewTests : IDisposable
         result.Errors[0].Message.ShouldBe("Variable `review` is required.");
     }
 
+    private static CreateReviewInputData CreateContent(Guid authorId, Guid movieId, int stars)
+    {
+        return new CreateReviewInputData
+        {
+            Query = CreateMutation,
+            Variables = new Variables
+            {
+                Review = new Review
+                {
+                    AuthorId = authorId,
+                    MovieId = movieId,
+                    Stars = stars
+                }
+            }
+        };
+    }
+
     #endregion Create
 
     #region Delete
@@ -140,58 +160,67 @@ public class ReviewTests : IDisposable
         using var client = this.application.CreateClient();
         using var reviewResponse = await client.GetAsync("/graphql?query={reviews(first:50){nodes{id}}}");
         var reviewId = (await reviewResponse.Content.ReadAsStringAsync()).Deserialize<GraphData>().Data.Reviews.Nodes[0].Id;
-        var content = new DeleteReviewInputData
-        {
-            Query = "mutation($id:UUID!){deleteReview(id:$id)}",
-            Variables = new Delete.Variables
-            {
-                Id = reviewId
-            }
-        };
 
         // Act
-        using var response = await client.PostAsync($"/graphql", content.ToStringContent());
+        using var response = await client.PostAsync($"/graphql", DeleteContent(reviewId).ToStringContent());
         var result = (await response.Content.ReadAsStringAsync()).Deserialize<GraphData>();
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        result.Errors.ShouldBeNull();
 
-        _ = result.ShouldNotBeNull();
-        _ = result.Data.ShouldNotBeNull();
+        var payload = result.Data.DeleteReview.ShouldNotBeNull();
+        payload.Errors.ShouldBeNull();
+        payload.ReviewId.ShouldBe(reviewId);
 
-        result.Data.DeleteReview.ShouldBe(true);
+        using var deletedResponse = await client.GetAsync($"/graphql?query={{review(id:\"{reviewId}\"){{id}}}}");
+        var deleted = (await deletedResponse.Content.ReadAsStringAsync()).Deserialize<GraphData>();
+
+        deleted.Errors.ShouldNotBeNull().ShouldHaveSingleItem().Extensions.Code.ShouldBe("NOT_FOUND");
     }
 
     [Fact]
-    public async Task Delete_ShouldNotDelete_Review()
+    public async Task Delete_ShouldReturn_ValidationError()
     {
         // Arrange
         using var client = this.application.CreateClient();
-        var content = new DeleteReviewInputData
-        {
-            Query = "mutation($id:UUID!){deleteReview(id:$id)}",
-            Variables = new Delete.Variables
-            {
-                Id = Guid.Empty
-            }
-        };
 
         // Act
-        using var response = await client.PostAsync($"/graphql", content.ToStringContent());
+        using var response = await client.PostAsync($"/graphql", DeleteContent(Guid.Empty).ToStringContent());
         var result = (await response.Content.ReadAsStringAsync()).Deserialize<GraphData>();
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        result.Errors.ShouldBeNull();
 
-        _ = result.ShouldNotBeNull();
+        var payload = result.Data.DeleteReview.ShouldNotBeNull();
+        payload.ReviewId.ShouldBeNull();
 
-        _ = result.Data.ShouldNotBeNull();
-        result.Data.DeleteReview.ShouldBeNull();
+        var error = payload.Errors.ShouldNotBeNull().ShouldHaveSingleItem();
+        error.TypeName.ShouldBe("ValidationError");
+        error.Fields.ShouldNotBeNull().ShouldHaveSingleItem().Field.ShouldBe("Id");
+    }
 
-        result.Errors.ShouldNotBeEmpty();
-        result.Errors.Count.ShouldBe(1);
-        result.Errors[0].Message.ShouldBe("One or more validation errors occurred.");
-        result.Errors[0].Extensions.Code.ShouldBe("VALIDATION");
+    [Fact]
+    public async Task Delete_ShouldReturn_NotFoundError()
+    {
+        // Arrange
+        using var client = this.application.CreateClient();
+
+        // Act
+        using var response = await client.PostAsync($"/graphql", DeleteContent(Guid.NewGuid()).ToStringContent());
+        var result = (await response.Content.ReadAsStringAsync()).Deserialize<GraphData>();
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        result.Errors.ShouldBeNull();
+
+        var payload = result.Data.DeleteReview.ShouldNotBeNull();
+        payload.ReviewId.ShouldBeNull();
+
+        var error = payload.Errors.ShouldNotBeNull().ShouldHaveSingleItem();
+        error.TypeName.ShouldBe("NotFoundError");
+        error.Message.ShouldBe("The Review with the supplied id was not found.");
     }
 
     [Fact]
@@ -201,7 +230,7 @@ public class ReviewTests : IDisposable
         using var client = this.application.CreateClient();
         var content = new DeleteReviewInputData
         {
-            Query = "mutation($id:UUID!){deleteReview(id:$id)}"
+            Query = DeleteMutation
         };
 
         // Act
@@ -217,7 +246,19 @@ public class ReviewTests : IDisposable
 
         result.Errors.ShouldNotBeEmpty();
         result.Errors.Count.ShouldBe(1);
-        result.Errors[0].Message.ShouldBe("Variable `id` is required.");
+        result.Errors[0].Message.ShouldBe("Variable `review` is required.");
+    }
+
+    private static DeleteReviewInputData DeleteContent(Guid id)
+    {
+        return new DeleteReviewInputData
+        {
+            Query = DeleteMutation,
+            Variables = new Delete.Variables
+            {
+                Review = new Delete.Review { Id = id }
+            }
+        };
     }
 
     #endregion Delete
@@ -308,37 +349,28 @@ public class ReviewTests : IDisposable
         using var reviewResponse = await client.GetAsync("/graphql?query={reviews(first:1){nodes{id,stars,author{id},movie{id}}}}");
         var review = (await reviewResponse.Content.ReadAsStringAsync()).Deserialize<GraphData>().Data.Reviews.Nodes[0];
         var stars = review.Stars == 5 ? 1 : review.Stars + 1;
-        var content = new UpdateReviewInputData()
-        {
-            Query = "mutation($review:UpdateReviewInput!){updateReview(input:$review)}",
-            Variables = new Update.Variables
-            {
-                Review = new Update.Review
-                {
-                    Id = review.Id,
-                    Stars = stars
-                }
-            }
-        };
 
         // Act
-        using var response = await client.PostAsync($"/graphql", content.ToStringContent());
+        using var response = await client.PostAsync($"/graphql", UpdateContent(review.Id, stars).ToStringContent());
         var result = (await response.Content.ReadAsStringAsync()).Deserialize<GraphData>();
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        result.Errors.ShouldBeNull();
 
-        _ = result.ShouldNotBeNull();
-        _ = result.Data.ShouldNotBeNull();
+        var payload = result.Data.UpdateReview.ShouldNotBeNull();
+        payload.Errors.ShouldBeNull();
 
-        result.Data.UpdateReview.ShouldBe(true);
-
-        using var updatedResponse = await client.GetAsync($"/graphql?query={{review(id:\"{review.Id}\"){{id,stars,author{{id}},movie{{id}}}}}}");
-        var updated = (await updatedResponse.Content.ReadAsStringAsync()).Deserialize<GraphData>().Data.Review;
-
+        var updated = payload.Review.ShouldNotBeNull();
+        updated.Id.ShouldBe(review.Id);
         updated.Stars.ShouldBe(stars);
         updated.Author.Id.ShouldBe(review.Author.Id);
         updated.Movie.Id.ShouldBe(review.Movie.Id);
+
+        using var savedResponse = await client.GetAsync($"/graphql?query={{review(id:\"{review.Id}\"){{stars}}}}");
+        var saved = (await savedResponse.Content.ReadAsStringAsync()).Deserialize<GraphData>().Data.Review;
+
+        saved.Stars.ShouldBe(stars);
     }
 
     [Fact]
@@ -346,77 +378,54 @@ public class ReviewTests : IDisposable
     {
         // Arrange
         using var client = this.application.CreateClient();
-        var content = new UpdateReviewInputData()
-        {
-            Query = "mutation($review:UpdateReviewInput!){updateReview(input:$review)}",
-            Variables = new Update.Variables
-            {
-                Review = new Update.Review
-                {
-                    Id = Guid.NewGuid(),
-                    Stars = 5
-                }
-            }
-        };
 
         // Act
-        using var response = await client.PostAsync($"/graphql", content.ToStringContent());
+        using var response = await client.PostAsync($"/graphql", UpdateContent(Guid.NewGuid(), 5).ToStringContent());
         var result = (await response.Content.ReadAsStringAsync()).Deserialize<GraphData>();
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        result.Errors.ShouldBeNull();
 
-        _ = result.ShouldNotBeNull();
-        result.Data.UpdateReview.ShouldBeNull();
+        var payload = result.Data.UpdateReview.ShouldNotBeNull();
+        payload.Review.ShouldBeNull();
 
-        result.Errors.ShouldNotBeNull().Count.ShouldBe(1);
-        result.Errors[0].Extensions.Code.ShouldBe("NOT_FOUND");
+        var error = payload.Errors.ShouldNotBeNull().ShouldHaveSingleItem();
+        error.TypeName.ShouldBe("NotFoundError");
+        error.Message.ShouldBe("The Review with the supplied id was not found.");
     }
 
     [Fact]
-    public async Task Update_ShouldNotUpdate_Review()
+    public async Task Update_ShouldReturn_ValidationError()
+    {
+        // Arrange
+        using var client = this.application.CreateClient();
+
+        // Act
+        using var response = await client.PostAsync($"/graphql", UpdateContent(Guid.Empty, 6).ToStringContent());
+        var result = (await response.Content.ReadAsStringAsync()).Deserialize<GraphData>();
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        result.Errors.ShouldBeNull();
+
+        var payload = result.Data.UpdateReview.ShouldNotBeNull();
+        payload.Review.ShouldBeNull();
+
+        var error = payload.Errors.ShouldNotBeNull().ShouldHaveSingleItem();
+        error.TypeName.ShouldBe("ValidationError");
+        error.Message.ShouldBe("One or more validation errors occurred.");
+        error.Fields.ShouldNotBeNull().Select(f => f.Field).ShouldBe(["Id", "Stars"], ignoreOrder: true);
+    }
+
+    [Fact]
+    public async Task UpdateNull_ShouldNotUpdate_Review()
     {
         // Arrange
         using var client = this.application.CreateClient();
         var content = new UpdateReviewInputData()
         {
-            Query = "mutation($review:UpdateReviewInput!){updateReview(input:$review)}",
-            Variables = new Update.Variables
-            {
-                Review = new Update.Review
-                {
-                    Id = Guid.Empty,
-                    Stars = 5
-                }
-            }
-        };
-
-        // Act
-        using var response = await client.PostAsync($"/graphql", content.ToStringContent());
-        var result = (await response.Content.ReadAsStringAsync()).Deserialize<GraphData>();
-
-        // Assert
-        response.StatusCode.ShouldBe(HttpStatusCode.OK);
-
-        _ = result.ShouldNotBeNull();
-
-        _ = result.Data.ShouldNotBeNull();
-        result.Data.UpdateReview.ShouldBeNull();
-
-        result.Errors.ShouldNotBeEmpty();
-        result.Errors.Count.ShouldBe(1);
-        result.Errors[0].Message.ShouldBe("One or more validation errors occurred.");
-        result.Errors[0].Extensions.Code.ShouldBe("VALIDATION");
-    }
-
-    [Fact]
-    public async Task UpdateNull_ShouldNotDelete_Review()
-    {
-        // Arrange
-        using var client = this.application.CreateClient();
-        var content = new UpdateReviewInputData()
-        {
-            Query = "mutation($review:UpdateReviewInput!){updateReview(input:$review)}"
+            Query = UpdateMutation
         };
 
         // Act
@@ -433,6 +442,22 @@ public class ReviewTests : IDisposable
         result.Errors.ShouldNotBeEmpty();
         result.Errors.Count.ShouldBe(1);
         result.Errors[0].Message.ShouldBe("Variable `review` is required.");
+    }
+
+    private static UpdateReviewInputData UpdateContent(Guid id, int stars)
+    {
+        return new UpdateReviewInputData()
+        {
+            Query = UpdateMutation,
+            Variables = new Update.Variables
+            {
+                Review = new Update.Review
+                {
+                    Id = id,
+                    Stars = stars
+                }
+            }
+        };
     }
 
     #endregion Update

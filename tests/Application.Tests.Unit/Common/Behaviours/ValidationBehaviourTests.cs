@@ -1,9 +1,5 @@
 namespace CleanGraphQLApi.Application.Tests.Unit.Common.Behaviours;
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Application.Authors.Entities;
 using Application.Authors.Queries.GetAuthorById;
 using Application.Common.Behaviours;

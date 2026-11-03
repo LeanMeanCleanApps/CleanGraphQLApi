@@ -1,6 +1,5 @@
 namespace CleanGraphQLApi.Infrastructure.Tests.Integration.Databases.MovieReviews;
 
-using System;
 using Extensions;
 using Infrastructure.Databases.MovieReviews;
 using Infrastructure.Databases.MovieReviews.Mapping;

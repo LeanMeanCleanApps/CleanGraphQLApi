@@ -67,6 +67,7 @@ public static class ProgramExtensions
             .AddGraphQLServer()
             .AddPresentationTypes()
             .AddAuthorization()
+            .AddMutationConventions(applyToAllMutations: true)
             // The filter is built from the schema's own services, so its logger comes from the application's.
             .AddErrorFilter(services => new ApplicationErrorFilter(
                 services.GetRootServiceProvider().GetRequiredService<ILogger<ApplicationErrorFilter>>()))

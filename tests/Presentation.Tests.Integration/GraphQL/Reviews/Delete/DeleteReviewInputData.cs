@@ -14,6 +14,12 @@ public partial class DeleteReviewInputData
 
 public partial class Variables
 {
+    [JsonPropertyName("review")]
+    public Review Review { get; set; } = null!;
+}
+
+public partial class Review
+{
     [JsonPropertyName("id")]
     public Guid Id { get; set; }
 }

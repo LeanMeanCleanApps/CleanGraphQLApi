@@ -57,7 +57,7 @@ public class AuthenticationTests : IDisposable
         using var client = this.application.CreateClient();
 
         // Act
-        var result = await Send(client, $"mutation{{deleteReview(id:\"{Guid.NewGuid()}\")}}");
+        var result = await Send(client, $"mutation{{deleteReview(input:{{id:\"{Guid.NewGuid()}\"}}){{reviewId}}}}");
 
         // Assert
         result.Errors.ShouldNotBeEmpty();

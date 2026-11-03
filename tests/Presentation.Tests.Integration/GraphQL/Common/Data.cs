@@ -27,11 +27,11 @@ public partial class Data
     public Versions.Version Version { get; set; } = null!;
 
     [JsonPropertyName("createReview")]
-    public Review CreateReview { get; set; } = null!;
+    public ReviewPayload? CreateReview { get; set; }
 
     [JsonPropertyName("deleteReview")]
-    public bool? DeleteReview { get; set; }
+    public DeleteReviewPayload? DeleteReview { get; set; }
 
     [JsonPropertyName("updateReview")]
-    public bool? UpdateReview { get; set; }
+    public ReviewPayload? UpdateReview { get; set; }
 }

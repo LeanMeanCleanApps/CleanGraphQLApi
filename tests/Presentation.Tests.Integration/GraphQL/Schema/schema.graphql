@@ -67,18 +67,18 @@ type Query {
     )
     @cost(weight: "10")
   "Gets the file and informational versions of the running application."
-  version: Version! @cost(weight: "10")
+  version: VersionInfo! @cost(weight: "10")
 }
 
 type Mutation {
   "Creates a review of a movie and returns it."
-  createReview("The review to create." input: CreateReviewInput!): Review
+  createReview(input: CreateReviewInput!): CreateReviewPayload!
     @cost(weight: "10")
-  "Updates the star rating of a review. Returns true when the review was updated."
-  updateReview("The review and its new star rating." input: UpdateReviewInput!): Boolean
+  "Changes the star rating of a review and returns the updated review. The author and the movie of a review can't change."
+  updateReview(input: UpdateReviewInput!): UpdateReviewPayload!
     @cost(weight: "10")
-  "Deletes a review. Returns true when the review was deleted."
-  deleteReview("The unique identifier of the review." id: UUID!): Boolean
+  "Deletes a review and returns the id it had."
+  deleteReview(input: DeleteReviewInput!): DeleteReviewPayload!
     @cost(weight: "10")
 }
 
@@ -130,6 +130,24 @@ type AuthorSummary {
   averageStars: Float
 }
 
+type CreateReviewPayload {
+  review: Review
+  errors: [CreateReviewError!]
+}
+
+type DeleteReviewPayload {
+  reviewId: UUID
+  errors: [DeleteReviewError!]
+}
+
+"One input field that broke a rule."
+type InvalidField {
+  "The name of the field, as the Application request names it."
+  field: String!
+  "What was wrong with it."
+  messages: [String!]!
+}
+
 "A movie that can be reviewed."
 type Movie {
   "The unique identifier of the movie."
@@ -172,6 +190,12 @@ type MovieSummary {
   reviewCount: Int!
   "The average star rating to one decimal place, or null when the movie has no reviews."
   averageStars: Float
+}
+
+"Something the mutation needs doesn't exist, such as the review, its author or its movie."
+type NotFoundError implements Error {
+  "What wasn't found."
+  message: String!
 }
 
 "Information about pagination in a connection."
@@ -236,15 +260,37 @@ type ReviewsEdge {
   node: Review!
 }
 
+type UpdateReviewPayload {
+  review: Review
+  errors: [UpdateReviewError!]
+}
+
+"The input broke one or more rules, so nothing changed."
+type ValidationError implements Error {
+  "A summary of the problem."
+  message: String!
+  "Each input field that broke a rule, with what was wrong with it."
+  fields: [InvalidField!]!
+}
+
 "The version details of the running application."
-type Version {
+type VersionInfo {
   "The assembly file version."
   fileVersion: String!
   "The informational version, which can include a pre-release label or commit hash."
   informationalVersion: String!
 }
 
-"A review of a movie to create."
+interface Error {
+  message: String!
+}
+
+union CreateReviewError = ValidationError | NotFoundError
+
+union DeleteReviewError = ValidationError | NotFoundError
+
+union UpdateReviewError = ValidationError | NotFoundError
+
 input CreateReviewInput {
   "The unique identifier of the author writing the review."
   authorId: UUID!
@@ -254,11 +300,15 @@ input CreateReviewInput {
   stars: Int!
 }
 
-"The new star rating of a review. The author and the movie of a review can't change."
+input DeleteReviewInput {
+  "The unique identifier of the review."
+  id: UUID!
+}
+
 input UpdateReviewInput {
   "The unique identifier of the review."
   id: UUID!
-  "The star rating, from 1 to 5."
+  "The new star rating, from 1 to 5."
   stars: Int!
 }
 

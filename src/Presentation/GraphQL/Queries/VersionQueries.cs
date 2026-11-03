@@ -11,7 +11,7 @@ public static partial class VersionQueries
     /// <summary>
     /// Gets the file and informational versions of the running application.
     /// </summary>
-    public static async Task<Entities.Version> GetVersion(ISender sender, CancellationToken cancellationToken)
+    public static async Task<Entities.VersionInfo> GetVersion(ISender sender, CancellationToken cancellationToken)
     {
         return await sender.Send(new Versions.GetVersion.GetVersionQuery(), cancellationToken);
     }

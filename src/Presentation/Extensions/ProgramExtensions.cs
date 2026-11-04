@@ -9,7 +9,6 @@ using Authentication;
 using ChilliCream.Nitro.App;
 using GraphQL.Errors;
 using Infrastructure;
-using Infrastructure.Telemetry;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -38,7 +37,7 @@ public static class ProgramExtensions
         var openTelemetry = builder.Services.AddOpenTelemetry()
             .ConfigureResource(resource => resource.AddAttributes(telemetry.ResourceAttributes))
             .WithTracing(tracing => tracing
-                .AddSource(ApplicationTelemetry.Name, InfrastructureTelemetry.Name)
+                .AddSource(ApplicationTelemetry.Name)
                 .AddAspNetCoreInstrumentation(options =>
                 {
                     // Probes call the health endpoints every few seconds, so tracing them would bury everything else.
@@ -49,8 +48,7 @@ public static class ProgramExtensions
                 .AddHotChocolateInstrumentation())
             .WithMetrics(metrics => metrics
                 .AddMeter(
-                    ApplicationTelemetry.Name,
-                    InfrastructureTelemetry.EntityFrameworkCoreMeterName,
+                    "Microsoft.EntityFrameworkCore",
                     "Microsoft.AspNetCore.Authentication",
                     "Microsoft.AspNetCore.Authorization")
                 .AddAspNetCoreInstrumentation()

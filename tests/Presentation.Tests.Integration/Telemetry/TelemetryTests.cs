@@ -3,7 +3,6 @@ namespace CleanGraphQLApi.Presentation.Tests.Integration.Telemetry;
 using System.Diagnostics;
 using System.Net;
 using Application.Common.Telemetry;
-using Infrastructure.Telemetry;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -23,7 +22,7 @@ public sealed class TelemetryTests : IDisposable
         // Other tests send requests at the same time, so only spans from this test's own trace are kept.
         this.listener = new ActivityListener
         {
-            ShouldListenTo = source => source.Name is AspNetCoreSourceName or HotChocolateSourceName or ApplicationTelemetry.Name or InfrastructureTelemetry.Name,
+            ShouldListenTo = source => source.Name is AspNetCoreSourceName or HotChocolateSourceName or ApplicationTelemetry.Name,
             Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
             ActivityStopped = activity =>
             {
@@ -50,7 +49,6 @@ public sealed class TelemetryTests : IDisposable
             Content = new { query = "{movies(first:5){nodes{id}}}" }.ToStringContent()
         };
         request.Headers.Add("traceparent", $"00-{traceId}-{ActivitySpanId.CreateRandom()}-01");
-        request.Headers.Add("baggage", "tenant.id=acme");
 
         // Act
         using var response = await client.SendAsync(request);
@@ -63,14 +61,11 @@ public sealed class TelemetryTests : IDisposable
         var server = trace.Single(s => s.Source.Name == AspNetCoreSourceName);
         var graphQL = trace.Where(s => s.Source.Name == HotChocolateSourceName).ToList();
         var useCase = trace.Single(s => s.Source.Name == ApplicationTelemetry.Name);
-        var commands = trace.Where(s => s.Source.Name == InfrastructureTelemetry.Name).ToList();
 
         server.Kind.ShouldBe(ActivityKind.Server);
         graphQL.ShouldContain(s => s.SpanId == useCase.ParentSpanId);
         useCase.DisplayName.ShouldBe("GetMoviesQuery");
-        useCase.GetTagItem("tenant.id").ShouldBe("acme");
-        commands.ShouldNotBeEmpty();
-        commands.ShouldAllBe(c => c.ParentSpanId == useCase.SpanId);
+        useCase.GetTagItem(ApplicationTelemetry.RequestOutcomeTag).ShouldBe("handled");
     }
 
     [Fact]

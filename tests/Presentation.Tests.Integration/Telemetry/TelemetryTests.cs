@@ -1,0 +1,133 @@
+namespace CleanGraphQLApi.Presentation.Tests.Integration.Telemetry;
+
+using System.Diagnostics;
+using System.Net;
+using Application.Common.Telemetry;
+using Microsoft.Extensions.DependencyInjection;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
+using Shouldly;
+using Xunit;
+
+public sealed class TelemetryTests : IDisposable
+{
+    private const string AspNetCoreSourceName = "Microsoft.AspNetCore";
+    private const string HotChocolateSourceName = "HotChocolate.Diagnostics";
+
+    private readonly ActivityListener listener;
+    private readonly List<Activity> spans = [];
+
+    public TelemetryTests()
+    {
+        // Other tests send requests at the same time, so only spans from this test's own trace are kept.
+        this.listener = new ActivityListener
+        {
+            ShouldListenTo = source => source.Name is AspNetCoreSourceName or HotChocolateSourceName or ApplicationTelemetry.Name,
+            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStopped = activity =>
+            {
+                lock (this.spans)
+                {
+                    this.spans.Add(activity);
+                }
+            }
+        };
+
+        ActivitySource.AddActivityListener(this.listener);
+    }
+
+    [Fact]
+    public async Task Query_ShouldTrace_FromHttpThroughOperationAndUseCaseToDatabase()
+    {
+        // Arrange
+        using var application = new GraphQLApplication();
+        using var client = application.CreateClient();
+
+        var traceId = ActivityTraceId.CreateRandom();
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/graphql")
+        {
+            Content = new { query = "{movies(first:5){nodes{id}}}" }.ToStringContent()
+        };
+        request.Headers.Add("traceparent", $"00-{traceId}-{ActivitySpanId.CreateRandom()}-01");
+
+        // Act
+        using var response = await client.SendAsync(request);
+        _ = await response.Content.ReadAsStringAsync();
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var trace = await this.ServerTraceIn(traceId);
+        var server = trace.Single(s => s.Source.Name == AspNetCoreSourceName);
+        var graphQL = trace.Where(s => s.Source.Name == HotChocolateSourceName).ToList();
+        var useCase = trace.Single(s => s.Source.Name == ApplicationTelemetry.Name);
+
+        server.Kind.ShouldBe(ActivityKind.Server);
+        graphQL.ShouldContain(s => s.SpanId == useCase.ParentSpanId);
+        useCase.DisplayName.ShouldBe("GetMoviesQuery");
+        useCase.GetTagItem(ApplicationTelemetry.RequestOutcomeTag).ShouldBe("handled");
+    }
+
+    [Fact]
+    public async Task HealthRequest_ShouldNotBeTraced()
+    {
+        // Arrange
+        using var application = new GraphQLApplication();
+        using var client = application.CreateClient();
+
+        var traceId = ActivityTraceId.CreateRandom();
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/health/ready");
+        request.Headers.Add("traceparent", $"00-{traceId}-{ActivitySpanId.CreateRandom()}-01");
+
+        // Act
+        using var response = await client.SendAsync(request);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        this.SpansIn(traceId).ShouldNotContain(s => s.Source.Name == AspNetCoreSourceName && s.IsAllDataRequested && s.Recorded);
+    }
+
+    [Fact]
+    public async Task Startup_ShouldRegister_TracerAndMeterProviders_WhenExporting()
+    {
+        // Arrange
+        using var application = new GraphQLApplication(settings: new Dictionary<string, string?>
+        {
+            ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "http://localhost:4317",
+            ["OTEL_SERVICE_NAME"] = "TelemetryTests"
+        });
+        using var client = application.CreateClient();
+
+        // Act
+        using var response = await client.GetAsync("/health/live");
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        _ = application.Services.GetRequiredService<TracerProvider>();
+        _ = application.Services.GetRequiredService<MeterProvider>();
+    }
+
+    public void Dispose()
+    {
+        this.listener.Dispose();
+    }
+
+    private async Task<List<Activity>> ServerTraceIn(ActivityTraceId traceId)
+    {
+        // The test server can hand back the response a moment before its request span stops, so wait for that span.
+        for (var attempt = 0; attempt < 50 && !this.SpansIn(traceId).Exists(s => s.Source.Name == AspNetCoreSourceName); attempt++)
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
+        }
+
+        return this.SpansIn(traceId);
+    }
+
+    private List<Activity> SpansIn(ActivityTraceId traceId)
+    {
+        lock (this.spans)
+        {
+            return [.. this.spans.Where(s => s.TraceId == traceId)];
+        }
+    }
+}

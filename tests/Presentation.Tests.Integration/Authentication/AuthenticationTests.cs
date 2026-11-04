@@ -36,6 +36,7 @@ public class AuthenticationTests : IDisposable
     [InlineData("{movies{nodes{id}}}")]
     [InlineData("{authors{nodes{id}}}")]
     [InlineData("{reviews{nodes{id}}}")]
+    [InlineData("{version{fileVersion}}")]
     public async Task Query_WithoutToken_ShouldReturn_NotAuthenticated(string query)
     {
         // Arrange
@@ -45,7 +46,7 @@ public class AuthenticationTests : IDisposable
         var result = await Send(client, query);
 
         // Assert
-        new object?[] { result.Data?.Movies, result.Data?.Authors, result.Data?.Reviews }.ShouldAllBe(field => field == null);
+        new object?[] { result.Data?.Movies, result.Data?.Authors, result.Data?.Reviews, result.Data?.Version }.ShouldAllBe(field => field == null);
         result.Errors.ShouldNotBeEmpty();
         result.Errors[0].Extensions.Code.ShouldBe("AUTH_NOT_AUTHENTICATED");
     }
@@ -95,10 +96,11 @@ public class AuthenticationTests : IDisposable
     }
 
     [Fact]
-    public async Task Version_WithoutToken_ShouldReturn_Version()
+    public async Task Version_WithToken_ShouldReturn_Version()
     {
         // Arrange
         using var client = this.application.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", CreateToken(Audience));
 
         // Act
         var result = await Send(client, "{version{fileVersion}}");

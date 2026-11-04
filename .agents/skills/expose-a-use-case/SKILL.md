@@ -27,7 +27,7 @@ Hot Chocolate reads XML comments, so a field's `<summary>` and `<param>` tags an
 
 1. Add the use case first (`add-a-use-case`).
 2. Add the field to the feature's class in `Queries/` or `Mutations/`. The method name minus `Get` and `Async` becomes the field name (`GetMovies` is `movies`).
-3. Put `[Authorize]` on every field except `version` (`optional-token-auth`).
+3. Put `[Authorize]` on every field, `version` included (`optional-token-auth`).
 4. Lists use `[UsePaging(ConnectionName = "...")]`, take `int? first` and `string? after`, and return `page.ToConnection()` with `after.ToOffset()` as the offset (`api-conventions`).
 5. A mutation takes its input fields as plain arguments and returns the result itself. `AddMutationConventions(applyToAllMutations: true)` wraps them in `<Mutation>Input` and `<Mutation>Payload`. Add `[Error<ValidationError>]` and `[Error<NotFoundError>]` for the failures it can raise, and `[UseMutationConvention(PayloadFieldName = "...")]` when the result isn't an entity, such as `reviewId` on `deleteReview`.
 6. A new entity gets a type in `Types/`: declare each field, mark non-null strings with `NonNullType<StringType>`, and resolve child lists on list items through a DataLoader.

@@ -13,8 +13,8 @@ You need the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0). [
 dotnet new install CleanGraphQLApi.Template
 
 # Create a solution
-dotnet new cleangraphqlapi --name Acme.Reviews --authorName "Your Name"
-cd Acme.Reviews
+dotnet new cleangraphqlapi --name WorksOnMyMachine.Movies --authorName "Your Name"
+cd WorksOnMyMachine.Movies
 ```
 
 | Option | What it does |

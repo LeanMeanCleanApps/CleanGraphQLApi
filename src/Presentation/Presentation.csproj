@@ -10,11 +10,17 @@
     <GenerateAssemblyInformationalVersionAttribute>true</GenerateAssemblyInformationalVersionAttribute>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <NoWarn>$(NoWarn);1573</NoWarn>
+    <!--#if (false) -->
+    <!-- The template repository keeps the authentication code in, so the #if includeAuth blocks compile here. dotnet new removes this. -->
+    <DefineConstants>$(DefineConstants);includeAuth</DefineConstants>
+    <!--#endif -->
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="HotChocolate.AspNetCore" />
+    <!--#if (includeAuth) -->
     <PackageReference Include="HotChocolate.AspNetCore.Authorization" />
+    <!--#endif -->
     <PackageReference Include="HotChocolate.Diagnostics" />
     <PackageReference Include="HotChocolate.Types.Analyzers">
       <PrivateAssets>all</PrivateAssets>
@@ -24,7 +30,9 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <!--#if (includeAuth) -->
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <!--#endif -->
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />

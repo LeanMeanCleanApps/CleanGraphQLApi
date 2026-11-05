@@ -20,16 +20,20 @@ You need the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0). [
 dotnet new install CleanGraphQLApi.Template
 
 # Create a solution
-dotnet new cleangraphqlapi --name Acme.Reviews --authorName "Your Name"
-cd Acme.Reviews
+dotnet new cleangraphqlapi --name WorksOnMyMachine.Movies --authorName "Your Name"
+cd WorksOnMyMachine.Movies
 ```
 
-| Option | What it does |
-| --- | --- |
-| `--name` | Names the solution and its root namespace |
-| `--authorName` | Puts your name on the assembly instead of ours |
-| `--authority` | Your OAuth authorization server. Leave it out and the API runs without authentication |
-| `--audience` | The audience tokens must be issued for, usually the API's own URL |
+| Option | Default | What it does |
+| --- | --- | --- |
+| `--name`, `-n` | The folder's name | Names the solution and its root namespace |
+| `--authorName`, `-an` | `Stephen Walsh` | Puts your name on the assembly instead of ours |
+| `--include-auth` | Off | Adds JWT bearer token authentication. Leave it out and the API has no auth code at all |
+| `--authority`, `-iss` | Empty | Your OAuth authorization server. Required with `--include-auth` |
+| `--audience`, `-aud` | Empty | The audience tokens must be issued for, usually the API's own URL. Only used with `--include-auth` |
+| `--no-restore` | Off | Skips the package restore that normally runs once the solution is created |
+
+Rather click than type? Visual Studio and Rider show the same options in their new project dialogs, and `dotnet new cleangraphqlapi --help` lists them in the terminal.
 
 That's three layers, four test projects, a Dockerfile and a CI pipeline. Go and tell your team you've been working on it all week.
 
@@ -75,7 +79,7 @@ The `movies`, `authors` and `reviews` queries use Relay-style cursor paging (`fi
 
 No Docker? `dotnet run --project src/Presentation` works too. Every other way to run it, from plain `docker run` to stamping a version into the image, is in [docs/RUN.md](docs/RUN.md).
 
-The API is open until you give it an authorization server. Pass `--authority` and `--audience` when you create the solution, or set `Authentication:Authority` later, and the movie, author and review queries and the review mutations start asking for a JWT bearer token. The `version` query asks for one too. Health checks, the schema and Nitro stay open. [Securing the API](https://leanmeancleanapps.github.io/graphql/guides/secure-the-api/) has the details.
+The API is open unless you ask for authentication. Create the solution with `--include-auth --authority https://login.example.com --audience https://api.example.com` and the movie, author and review queries and the review mutations ask for a JWT bearer token. The `version` query asks for one too. Health checks, the schema and Nitro stay open. Leave `--include-auth` out and there's no authentication code in the solution at all, so there's nothing to leave switched off by accident. [Securing the API](https://leanmeancleanapps.github.io/graphql/guides/secure-the-api/) has the details, including how to add it later.
 
 ## What's inside
 

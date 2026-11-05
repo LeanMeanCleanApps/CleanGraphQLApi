@@ -2,7 +2,9 @@ namespace CleanGraphQLApi.Presentation.GraphQL.Mutations;
 
 using Application.Reviews.Entities;
 using Errors;
+#if includeAuth
 using HotChocolate.Authorization;
+#endif
 using HotChocolate.Types;
 using Mediator;
 using Commands = Application.Reviews.Commands;
@@ -21,7 +23,9 @@ public static partial class ReviewMutations
     /// <param name="authorId">The unique identifier of the author writing the review.</param>
     /// <param name="movieId">The unique identifier of the movie being reviewed.</param>
     /// <param name="stars">The star rating, from 1 to 5.</param>
+#if includeAuth
     [Authorize]
+#endif
     [Error<ValidationError>]
     [Error<NotFoundError>]
     public static async Task<Review> CreateReview(
@@ -44,7 +48,9 @@ public static partial class ReviewMutations
     /// </summary>
     /// <param name="id">The unique identifier of the review.</param>
     /// <param name="stars">The new star rating, from 1 to 5.</param>
+#if includeAuth
     [Authorize]
+#endif
     [Error<ValidationError>]
     [Error<NotFoundError>]
     public static async Task<Review> UpdateReview(
@@ -64,7 +70,9 @@ public static partial class ReviewMutations
     /// Deletes a review and returns the id it had.
     /// </summary>
     /// <param name="id">The unique identifier of the review.</param>
+#if includeAuth
     [Authorize]
+#endif
     [Error<ValidationError>]
     [Error<NotFoundError>]
     [UseMutationConvention(PayloadFieldName = "reviewId")]

@@ -28,8 +28,7 @@ cd WorksOnMyMachine.Movies
 | --- | --- |
 | `--name`, `-n` | Names the solution and its root namespace |
 | `--authorName`, `-an` | Puts your name on the assembly instead of ours |
-| `--auth` | `none` (the default) leaves the API open, `bearer` switches on JWT bearer tokens |
-| `--authority`, `-iss` | Your OAuth authorization server, required with `--auth bearer` |
+| `--authority`, `-iss` | Your OAuth authorization server. Leave it out and the API runs without authentication |
 | `--audience`, `-aud` | The audience tokens must be issued for, usually the API's own URL |
 | `--no-restore` | Skips the package restore that normally runs once the solution is created |
 
@@ -79,7 +78,7 @@ The `movies`, `authors` and `reviews` queries use Relay-style cursor paging (`fi
 
 No Docker? `dotnet run --project src/Presentation` works too. Every other way to run it, from plain `docker run` to stamping a version into the image, is in [docs/RUN.md](docs/RUN.md).
 
-The API is open until you give it an authorization server. Pass `--auth bearer` with `--authority` and `--audience` when you create the solution, or set `Authentication:Authority` later, and the movie, author and review queries and the review mutations start asking for a JWT bearer token. The `version` query asks for one too. Health checks, the schema and Nitro stay open. [Securing the API](https://leanmeancleanapps.github.io/graphql/guides/secure-the-api/) has the details.
+The API is open until you give it an authorization server. Pass `--authority` and `--audience` when you create the solution, or set `Authentication:Authority` later, and the movie, author and review queries and the review mutations start asking for a JWT bearer token. The `version` query asks for one too. Health checks, the schema and Nitro stay open. [Securing the API](https://leanmeancleanapps.github.io/graphql/guides/secure-the-api/) has the details.
 
 ## What's inside
 

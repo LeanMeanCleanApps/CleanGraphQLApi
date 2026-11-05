@@ -9,7 +9,7 @@ metadata:
 
 ## The rule
 
-The GraphQL layer is tested through HTTP in `tests/Presentation.Tests.Integration`. `ApplicationErrorFilter`, `PageExtensions` and `AuthenticationSettings` are also tested on their own in `tests/Presentation.Tests.Unit` (`unit-tests`). `GraphQLApplication` (a `WebApplicationFactory<Program>`) starts the app with the `local` environment, its own shared-cache in-memory SQLite database and the sample data on. Each test class creates one in a field, implements `IDisposable` and disposes it, so no class shares data with another.
+The GraphQL layer is tested through HTTP in `tests/Presentation.Tests.Integration`. `ApplicationErrorFilter`, `PageExtensions` and, with authentication, `AuthenticationSettings` are also tested on their own in `tests/Presentation.Tests.Unit` (`unit-tests`). `GraphQLApplication` (a `WebApplicationFactory<Program>`) starts the app with the `local` environment, its own shared-cache in-memory SQLite database and the sample data on. Each test class creates one in a field, implements `IDisposable` and disposes it, so no class shares data with another.
 
 | Piece | Where | Use it to |
 | --- | --- | --- |
@@ -26,7 +26,7 @@ The GraphQL layer is tested through HTTP in `tests/Presentation.Tests.Integratio
 4. For failures, assert `errors[0].extensions.code` (`VALIDATION`, `NOT_FOUND`) and the messages (`api-conventions`).
 5. Find rows through the API (list, then pick one), not by hard-coded ids.
 6. A schema change also updates the snapshot (`schema-snapshot`).
-7. Authentication tests pass `Authentication:*` settings and a test signing key. See `Authentication/AuthenticationTests.cs`.
+7. In a solution with authentication, its tests pass `Authentication:*` settings and a test signing key. See `Authentication/AuthenticationTests.cs`.
 
 ## Example
 

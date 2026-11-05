@@ -1,9 +1,9 @@
 namespace CleanGraphQLApi.Presentation.Tests.Unit.GraphQL.Extensions;
 
 using System.Text;
-using CleanGraphQLApi.Application.Common.Paging;
-using CleanGraphQLApi.Presentation.GraphQL.Extensions;
+using Application.Common.Paging;
 using FluentValidation;
+using Presentation.GraphQL.Extensions;
 using Shouldly;
 using Xunit;
 

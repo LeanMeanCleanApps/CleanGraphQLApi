@@ -312,7 +312,7 @@ input UpdateReviewInput {
   stars: Int!
 }
 
-#if (auth)
+#if (includeAuth)
 "Defines when a policy shall be executed."
 enum ApplyPolicy {
   "Before the resolver was executed."

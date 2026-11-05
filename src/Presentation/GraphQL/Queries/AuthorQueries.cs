@@ -3,7 +3,7 @@ namespace CleanGraphQLApi.Presentation.GraphQL.Queries;
 using Application.Authors.Entities;
 using Application.Common.Paging;
 using Extensions;
-#if auth
+#if includeAuth
 using HotChocolate.Authorization;
 #endif
 using HotChocolate.Types;
@@ -18,7 +18,7 @@ public static partial class AuthorQueries
     /// Gets an author by their unique identifier.
     /// </summary>
     /// <param name="id">The unique identifier of the author.</param>
-#if auth
+#if includeAuth
     [Authorize]
 #endif
     public static async Task<Author?> GetAuthor(Guid id, ISender sender, CancellationToken cancellationToken)
@@ -31,7 +31,7 @@ public static partial class AuthorQueries
     /// </summary>
     /// <param name="query">The words to look for in the name, ignoring case. Leave empty to list every author.</param>
     [UsePaging(ConnectionName = "Authors")]
-#if auth
+#if includeAuth
     [Authorize]
 #endif
     public static async Task<Connection<AuthorSummary>> GetAuthors(

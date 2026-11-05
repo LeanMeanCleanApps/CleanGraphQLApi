@@ -1,6 +1,6 @@
 namespace CleanGraphQLApi.Presentation.GraphQL.Queries;
 
-#if auth
+#if includeAuth
 using HotChocolate.Authorization;
 #endif
 using HotChocolate.Types;
@@ -14,7 +14,7 @@ public static partial class VersionQueries
     /// <summary>
     /// Gets the file and informational versions of the running application.
     /// </summary>
-#if auth
+#if includeAuth
     [Authorize]
 #endif
     public static async Task<Entities.VersionInfo> GetVersion(ISender sender, CancellationToken cancellationToken)

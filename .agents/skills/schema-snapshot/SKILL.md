@@ -11,7 +11,7 @@ metadata:
 
 `tests/Presentation.Tests.Integration/GraphQL/Schema/schema.graphql` is the schema clients see, checked in. `SchemaTests.Schema_ShouldMatch_Snapshot` asks the running app for `/graphql?sdl` and fails when the two differ. Every schema change shows up in a pull request as a diff of that file, so reviewers see exactly what clients will see.
 
-The test ignores lines that start with `#`, which GraphQL treats as comments. In the template repository the snapshot uses them to mark the `ApplyPolicy` enum, which only exists when authorization is on, so `dotnet new` can leave it out of a solution created without `--auth`. Keep those markers when you update the snapshot there.
+The test ignores lines that start with `#`, which GraphQL treats as comments. In the template repository the snapshot uses them to mark the `ApplyPolicy` enum, which only exists when authorization is on, so `dotnet new` can leave it out of a solution created without `--include-auth`. Keep those markers when you update the snapshot there.
 
 ## Steps
 

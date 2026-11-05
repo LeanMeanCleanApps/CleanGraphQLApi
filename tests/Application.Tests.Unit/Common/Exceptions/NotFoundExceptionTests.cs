@@ -1,8 +1,8 @@
 namespace CleanGraphQLApi.Application.Tests.Unit.Common.Exceptions;
 
 using Application.Authors.Entities;
-using CleanGraphQLApi.Application.Common.Enums;
-using CleanGraphQLApi.Application.Common.Exceptions;
+using Application.Common.Enums;
+using Application.Common.Exceptions;
 using Shouldly;
 using Xunit;
 

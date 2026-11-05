@@ -1,12 +1,12 @@
 namespace CleanGraphQLApi.Presentation.Tests.Unit.GraphQL.Errors;
 
-using CleanGraphQLApi.Application.Common.Exceptions;
-using CleanGraphQLApi.Presentation.GraphQL.Errors;
+using Application.Common.Exceptions;
 using FluentValidation;
 using FluentValidation.Results;
 using HotChocolate;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Testing;
+using Presentation.GraphQL.Errors;
 using Shouldly;
 using Xunit;
 

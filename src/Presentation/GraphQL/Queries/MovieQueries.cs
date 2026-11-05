@@ -3,7 +3,9 @@ namespace CleanGraphQLApi.Presentation.GraphQL.Queries;
 using Application.Common.Paging;
 using Application.Movies.Entities;
 using Extensions;
+#if auth
 using HotChocolate.Authorization;
+#endif
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 using Mediator;
@@ -16,7 +18,9 @@ public static partial class MovieQueries
     /// Gets a movie by its unique identifier.
     /// </summary>
     /// <param name="id">The unique identifier of the movie.</param>
+#if auth
     [Authorize]
+#endif
     public static async Task<Movie?> GetMovie(Guid id, ISender sender, CancellationToken cancellationToken)
     {
         return await sender.Send(new Movies.GetMovieById.GetMovieByIdQuery { Id = id }, cancellationToken);
@@ -27,7 +31,9 @@ public static partial class MovieQueries
     /// </summary>
     /// <param name="query">The words to look for in the title, ignoring case. Leave empty to list every movie.</param>
     [UsePaging(ConnectionName = "Movies")]
+#if auth
     [Authorize]
+#endif
     public static async Task<Connection<MovieSummary>> GetMovies(
         string? query,
         int? first,

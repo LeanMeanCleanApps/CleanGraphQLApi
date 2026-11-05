@@ -6,12 +6,16 @@ using Application;
 using Application.Common.Paging;
 using Application.Common.Telemetry;
 using Application.Versions.Entities;
+#if auth
 using Authentication;
+#endif
 using ChilliCream.Nitro.App;
 using GraphQL.Errors;
 using Infrastructure;
+#if auth
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+#endif
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Configuration;
@@ -48,10 +52,14 @@ public static class ProgramExtensions
                 .AddHttpClientInstrumentation(options => options.RecordException = true)
                 .AddHotChocolateInstrumentation())
             .WithMetrics(metrics => metrics
+#if auth
                 .AddMeter(
                     "Microsoft.EntityFrameworkCore",
                     "Microsoft.AspNetCore.Authentication",
                     "Microsoft.AspNetCore.Authorization")
+#else
+                .AddMeter("Microsoft.EntityFrameworkCore")
+#endif
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation()
                 .AddRuntimeInstrumentation()
@@ -94,6 +102,7 @@ public static class ProgramExtensions
 
         #endregion Logging
 
+#if auth
         #region Authentication
 
         var authentication = AuthenticationSettings.FromConfiguration(builder.Configuration);
@@ -119,12 +128,15 @@ public static class ProgramExtensions
 
         #endregion Authentication
 
+#endif
         #region GraphQL
 
         _ = builder.Services
             .AddGraphQLServer()
             .AddPresentationTypes()
+#if auth
             .AddAuthorization()
+#endif
             .AddInstrumentation()
             .AddMutationConventions(applyToAllMutations: true)
             // The filter is built from the schema's own services, so its logger comes from the application's.
@@ -181,6 +193,7 @@ public static class ProgramExtensions
 
         #endregion Logging
 
+#if auth
         #region Authentication
 
         if (AuthenticationSettings.FromConfiguration(app.Configuration).Enabled)
@@ -192,11 +205,17 @@ public static class ProgramExtensions
 
         #endregion Authentication
 
+#endif
         #region Health
 
         // Liveness runs no checks, so it only fails when the process can't answer. Readiness checks the database.
+#if auth
         _ = app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false }).AllowAnonymous();
         _ = app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = check => check.Tags.Contains("ready") }).AllowAnonymous();
+#else
+        _ = app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
+        _ = app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = check => check.Tags.Contains("ready") });
+#endif
 
         #endregion Health
 

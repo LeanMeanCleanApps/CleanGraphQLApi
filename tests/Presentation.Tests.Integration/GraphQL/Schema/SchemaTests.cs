@@ -48,7 +48,10 @@ public class SchemaTests : IDisposable
 
     private static string Normalize(string schema)
     {
-        return schema.Replace("\r\n", "\n").Trim();
+        // Comment lines aren't part of the schema. The snapshot uses them to mark what dotnet new leaves out.
+        var lines = schema.Replace("\r\n", "\n").Split('\n').Where(line => !line.StartsWith('#'));
+
+        return string.Join('\n', lines).Trim();
     }
 
     public void Dispose()

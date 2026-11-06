@@ -24,6 +24,21 @@ public class ReviewTests : IDisposable
     private const string DeleteMutation = "mutation($review:DeleteReviewInput!){deleteReview(input:$review){reviewId," + Errors + "}}";
 
     [Fact]
+    public async Task Reviews_ShouldFilter_ByTextAndStars()
+    {
+        // Arrange
+        using var client = this.application.CreateClient();
+
+        // Act
+        using var response = await client.GetAsync("/graphql?query={reviews(query:\"great\",minStars:4,first:50){nodes{id,stars}}}");
+        var result = (await response.Content.ReadAsStringAsync()).Deserialize<GraphData>();
+
+        // Assert
+        result.Data.Reviews.Nodes.ShouldNotBeEmpty();
+        result.Data.Reviews.Nodes.ShouldAllBe(r => r.Stars >= 4);
+    }
+
+    [Fact]
     public async Task Create_ShouldCreate_Review()
     {
         // Arrange

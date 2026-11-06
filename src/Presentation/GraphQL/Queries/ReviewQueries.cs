@@ -31,6 +31,8 @@ public static partial class ReviewQueries
     /// </summary>
     /// <param name="movieId">Only return reviews of this movie. Leave empty for every movie.</param>
     /// <param name="authorId">Only return reviews by this author. Leave empty for every author.</param>
+    /// <param name="query">Only return reviews whose text contains this, ignoring case. Leave empty for every review.</param>
+    /// <param name="minStars">Only return reviews with at least this many stars, from 1 to 5. Leave empty for every rating.</param>
     [UsePaging(ConnectionName = "Reviews")]
 #if includeAuth
     [Authorize]
@@ -38,6 +40,8 @@ public static partial class ReviewQueries
     public static async Task<Connection<Review>> GetReviews(
         Guid? movieId,
         Guid? authorId,
+        string? query,
+        int? minStars,
         int? first,
         string? after,
         ISender sender,
@@ -47,6 +51,8 @@ public static partial class ReviewQueries
         {
             MovieId = movieId,
             AuthorId = authorId,
+            Query = query,
+            MinStars = minStars,
             Offset = after.ToOffset(),
             Limit = first ?? Paging.DefaultLimit
         }, cancellationToken);

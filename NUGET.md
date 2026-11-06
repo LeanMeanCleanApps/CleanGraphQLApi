@@ -25,6 +25,8 @@ dotnet new cleangraphqlapi --name WorksOnMyMachine.Movies --authorName "Your Nam
 cd WorksOnMyMachine.Movies
 ```
 
+`cleangraphql` and `cleanhotchocolate` work too, for anyone who'd rather not type `cleangraphqlapi` every time, and so do `lmca-graphql` and `leanmeancleanapps-graphql`. `dotnet new search leanmeanclean` lists the whole family.
+
 | Option | Default | What it does |
 | --- | --- | --- |
 | `--name`, `-n` | The folder's name | Names the solution and its root namespace |

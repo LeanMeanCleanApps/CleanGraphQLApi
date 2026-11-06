@@ -7,15 +7,23 @@
     "API",
     "Service",
     "GraphQL",
+    "Hot Chocolate",
+    "Lean Mean Clean Apps",
     "Clean Architecture"
   ],
   "identity": "CleanGraphQLApi.Template",
   "groupIdentity": "CleanGraphQLApi",
   "generatorVersions": "[1.0.0.0-*)",
   "precedence": "100",
-  "name": "Clean GraphQL API Template",
+  "name": "Clean GraphQL API (Hot Chocolate) Template",
   "description": "A GraphQL API on Hot Chocolate and .NET 10, built with Clean Architecture minus the ceremony.",
-  "shortName": "cleangraphqlapi",
+  "shortName": [
+    "cleangraphqlapi",
+    "cleangraphql",
+    "cleanhotchocolate",
+    "lmca-graphql",
+    "leanmeancleanapps-graphql"
+  ],
   "tags": {
     "language": "C#",
     "type": "solution"

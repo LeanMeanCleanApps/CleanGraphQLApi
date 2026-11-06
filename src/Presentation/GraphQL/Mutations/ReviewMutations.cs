@@ -23,6 +23,7 @@ public static partial class ReviewMutations
     /// <param name="authorId">The unique identifier of the author writing the review.</param>
     /// <param name="movieId">The unique identifier of the movie being reviewed.</param>
     /// <param name="stars">The star rating, from 1 to 5.</param>
+    /// <param name="text">What the author has to say about the movie, up to 1000 characters.</param>
 #if includeAuth
     [Authorize]
 #endif
@@ -32,6 +33,7 @@ public static partial class ReviewMutations
         Guid authorId,
         Guid movieId,
         int stars,
+        string? text,
         ISender sender,
         CancellationToken cancellationToken)
     {
@@ -39,15 +41,17 @@ public static partial class ReviewMutations
         {
             AuthorId = authorId,
             MovieId = movieId,
-            Stars = stars
+            Stars = stars,
+            Text = text
         }, cancellationToken);
     }
 
     /// <summary>
-    /// Changes the star rating of a review and returns the updated review. The author and the movie of a review can't change.
+    /// Changes the star rating and text of a review and returns the updated review. The author and the movie of a review can't change.
     /// </summary>
     /// <param name="id">The unique identifier of the review.</param>
     /// <param name="stars">The new star rating, from 1 to 5.</param>
+    /// <param name="text">The new text, up to 1000 characters. Leave it out to keep the text the review has.</param>
 #if includeAuth
     [Authorize]
 #endif
@@ -56,13 +60,15 @@ public static partial class ReviewMutations
     public static async Task<Review> UpdateReview(
         Guid id,
         int stars,
+        string? text,
         ISender sender,
         CancellationToken cancellationToken)
     {
         return await sender.Send(new Commands.UpdateReview.UpdateReviewCommand
         {
             Id = id,
-            Stars = stars
+            Stars = stars,
+            Text = text
         }, cancellationToken);
     }
 

@@ -6,7 +6,7 @@
       "dotnetRunMessages": true,
       "launchBrowser": true,
       "launchUrl": "graphql",
-      "applicationUrl": "https://localhost:8731;http://localhost:8730",
+      "applicationUrl": "https://localhost:7331;http://localhost:7330",
       "environmentVariables": {
         "DOTNET_ENVIRONMENT": "local"
       }

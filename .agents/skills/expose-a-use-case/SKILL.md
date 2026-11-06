@@ -100,5 +100,5 @@ public static async Task<Review> UpdateReview(
 ``` bash
 dotnet build
 dotnet test tests/Presentation.Tests.Integration
-dotnet run --project ./src/Presentation   # then try it in Nitro at http://localhost:8730/graphql
+dotnet run --project ./src/Presentation   # then try it in Nitro at http://localhost:7330/graphql
 ```

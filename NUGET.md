@@ -48,7 +48,7 @@ docker compose up -d --build
 dotnet test
 ```
 
-Then open [Nitro](https://chillicream.com/docs/nitro), the GraphQL IDE, at <http://localhost:8080/graphql> and ask it for some movies.
+Then open [Nitro](https://chillicream.com/docs/nitro), the GraphQL IDE, at <http://localhost:8730/graphql> and ask it for some movies.
 
 The API is open unless you create it with `--include-auth --authority` (and usually `--audience`), and then the queries and mutations ask for a JWT bearer token. Leave `--include-auth` out and there's no auth code at all.
 

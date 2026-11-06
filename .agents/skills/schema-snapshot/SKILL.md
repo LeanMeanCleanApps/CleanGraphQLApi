@@ -17,7 +17,7 @@ The test ignores lines that start with `#`, which GraphQL treats as comments. In
 
 1. Make the schema change.
 2. Run the tests. The snapshot test fails and prints the new schema.
-3. Copy the new SDL into `schema.graphql`. Either take it from the test output, or run the app and open <http://localhost:8080/graphql?sdl>.
+3. Copy the new SDL into `schema.graphql`. Either take it from the test output, or run the app and open <http://localhost:8730/graphql?sdl>.
 4. Read the diff. A removed field, a renamed one, or a field that became non-null breaks clients, so say so in the pull request.
 5. Run the tests again.
 

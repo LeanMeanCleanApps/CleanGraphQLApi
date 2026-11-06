@@ -46,7 +46,7 @@ That's three layers, four test projects, a Dockerfile and a CI pipeline. Go and 
 docker compose up -d --build
 
 # Ask it for a page of movies
-curl http://localhost:8080/graphql \
+curl http://localhost:8730/graphql \
   -H 'Content-Type: application/json' \
   -d '{ "query": "{ movies(query: \"space\", first: 2) { totalCount nodes { title reviewCount averageStars } } }" }'
 ```
@@ -75,9 +75,9 @@ curl http://localhost:8080/graphql \
 
 The sample movies are all made up, and the critics are harsh.
 
-Typing GraphQL into curl is a character-building exercise. Open [Nitro](https://chillicream.com/docs/nitro), the GraphQL IDE, at <http://localhost:8080/graphql> instead, where the schema is documented from the same XML comments as the code.
+Typing GraphQL into curl is a character-building exercise. Open [Nitro](https://chillicream.com/docs/nitro), the GraphQL IDE, at <http://localhost:8730/graphql> instead, where the schema is documented from the same XML comments as the code.
 
-The `movies`, `authors` and `reviews` queries use Relay-style cursor paging (`first`, `after`, `pageInfo`, `totalCount`). Movies and authors come with their review count and average stars, worked out by the database rather than in a loop somewhere. Ask for their reviews and a [DataLoader](https://chillicream.com/docs/hotchocolate/fetching-data/dataloader) fetches them for the whole page at once, so 50 movies take three queries, not 52. Its logs, traces and metrics land in the [Aspire dashboard](https://learn.microsoft.com/dotnet/aspire/fundamentals/dashboard/standalone) at <http://localhost:18888>.
+The `movies`, `authors` and `reviews` queries use Relay-style cursor paging (`first`, `after`, `pageInfo`, `totalCount`). Movies and authors come with their review count and average stars, worked out by the database rather than in a loop somewhere. Ask for their reviews and a [DataLoader](https://chillicream.com/docs/hotchocolate/fetching-data/dataloader) fetches them for the whole page at once, so 50 movies take three queries, not 52. Its logs, traces and metrics land in the [Aspire dashboard](https://learn.microsoft.com/dotnet/aspire/fundamentals/dashboard/standalone) at <http://localhost:8732>.
 
 No Docker? `dotnet run --project src/Presentation` works too. Every other way to run it, from plain `docker run` to stamping a version into the image, is in [docs/RUN.md](docs/RUN.md).
 

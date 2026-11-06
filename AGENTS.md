@@ -27,7 +27,7 @@ Run these before you say a change is done. They're what CI runs.
 dotnet build                                   # warnings are errors
 dotnet test                                    # every test project
 dotnet format --verify-no-changes              # style, whitespace and usings
-dotnet run --project ./src/Presentation        # Nitro at http://localhost:8080/graphql
+dotnet run --project ./src/Presentation        # Nitro at http://localhost:8730/graphql
 ```
 
 The `coverage` skill has the command that checks the 95% line coverage gate locally.

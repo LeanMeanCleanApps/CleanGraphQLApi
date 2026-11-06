@@ -28,4 +28,7 @@ public partial class Review
 
     [JsonPropertyName("stars")]
     public int Stars { get; set; }
+
+    [JsonPropertyName("text")]
+    public string? Text { get; set; }
 }

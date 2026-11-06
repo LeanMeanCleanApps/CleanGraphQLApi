@@ -10,6 +10,24 @@ public class MovieTests : IDisposable
 {
     private readonly GraphQLApplication application = new();
 
+    [Theory]
+    [InlineData("space")]
+    [InlineData("love")]
+    [InlineData("murder")]
+    [InlineData("dragon")]
+    public async Task Movies_ShouldFind_SampleMovies(string query)
+    {
+        // Arrange
+        using var client = this.application.CreateClient();
+
+        // Act
+        using var response = await client.GetAsync($"/graphql?query={{movies(query:\"{query}\",first:5){{nodes{{id}}}}}}");
+        var result = (await response.Content.ReadAsStringAsync()).Deserialize<GraphData>();
+
+        // Assert
+        result.Data.Movies.Nodes.ShouldNotBeEmpty();
+    }
+
     [Fact]
     public async Task Movies_ShouldReturn_MoviesList()
     {

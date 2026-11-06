@@ -48,24 +48,24 @@ docker compose up -d --build
 # Ask it for a page of movies
 curl http://localhost:8080/graphql \
   -H 'Content-Type: application/json' \
-  -d '{ "query": "{ movies(query: \"global\", first: 2) { totalCount nodes { title reviewCount averageStars } } }" }'
+  -d '{ "query": "{ movies(query: \"space\", first: 2) { totalCount nodes { title reviewCount averageStars } } }" }'
 ```
 
 ```json
 {
   "data": {
     "movies": {
-      "totalCount": 2,
+      "totalCount": 4,
       "nodes": [
         {
-          "title": "Assimilated global infrastructure",
-          "reviewCount": 1,
-          "averageStars": 1
+          "title": "Deep Space Gardeners",
+          "reviewCount": 5,
+          "averageStars": 3.4
         },
         {
-          "title": "Automated global alliance",
-          "reviewCount": 3,
-          "averageStars": 3.3
+          "title": "Postcards from Outer Space",
+          "reviewCount": 1,
+          "averageStars": 3
         }
       ]
     }
@@ -73,7 +73,7 @@ curl http://localhost:8080/graphql \
 }
 ```
 
-Yes, the sample movies are named by a corporate buzzword generator, and the critics are harsh.
+The sample movies are all made up, and the critics are harsh.
 
 Typing GraphQL into curl is a character-building exercise. Open [Nitro](https://chillicream.com/docs/nitro), the GraphQL IDE, at <http://localhost:8080/graphql> instead, where the schema is documented from the same XML comments as the code.
 

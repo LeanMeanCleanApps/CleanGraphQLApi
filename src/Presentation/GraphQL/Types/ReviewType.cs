@@ -10,6 +10,7 @@ public static partial class ReviewType
     {
         _ = descriptor.Field(r => r.Id);
         _ = descriptor.Field(r => r.Stars);
+        _ = descriptor.Field(r => r.Text);
         _ = descriptor.Field(r => r.ReviewedMovie).Name("movie");
         _ = descriptor.Field(r => r.ReviewAuthor).Name("author");
     }

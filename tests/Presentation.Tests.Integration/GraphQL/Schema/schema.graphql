@@ -74,7 +74,7 @@ type Mutation {
   "Creates a review of a movie and returns it."
   createReview(input: CreateReviewInput!): CreateReviewPayload!
     @cost(weight: "10")
-  "Changes the star rating of a review and returns the updated review. The author and the movie of a review can't change."
+  "Changes the star rating and text of a review and returns the updated review. The author and the movie of a review can't change."
   updateReview(input: UpdateReviewInput!): UpdateReviewPayload!
     @cost(weight: "10")
   "Deletes a review and returns the id it had."
@@ -216,6 +216,8 @@ type Review {
   id: UUID!
   "The star rating, from 1 to 5."
   stars: Int!
+  "What the author said about the movie, if anything."
+  text: String
   "The movie that was reviewed."
   movie: ReviewedMovie
   "The author who wrote the review."
@@ -298,6 +300,8 @@ input CreateReviewInput {
   movieId: UUID!
   "The star rating, from 1 to 5."
   stars: Int!
+  "What the author has to say about the movie, up to 1000 characters."
+  text: String
 }
 
 input DeleteReviewInput {
@@ -310,6 +314,8 @@ input UpdateReviewInput {
   id: UUID!
   "The new star rating, from 1 to 5."
   stars: Int!
+  "The new text, up to 1000 characters. Leave it out to keep the text the review has."
+  text: String
 }
 
 #if (includeAuth)

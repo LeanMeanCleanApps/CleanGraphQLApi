@@ -9,13 +9,13 @@ metadata:
 
 ## The rule
 
-`MapGraphQL()` serves Nitro, Hot Chocolate's GraphQL IDE, at <http://localhost:8080/graphql> when a browser asks for it. It's served embedded (`ServeMode.Embedded`) so it works offline and never loads from a CDN. The schema and Nitro stay open when authentication is on; every field, `version` included, asks for a token.
+`MapGraphQL()` serves Nitro, Hot Chocolate's GraphQL IDE, at <http://localhost:7330/graphql> when a browser asks for it. It's served embedded (`ServeMode.Embedded`) so it works offline and never loads from a CDN. The schema and Nitro stay open when authentication is on; every field, `version` included, asks for a token.
 
 | What | Address |
 | --- | --- |
-| Nitro | <http://localhost:8080/graphql> |
-| Schema as SDL | <http://localhost:8080/graphql?sdl> |
-| Aspire dashboard (logs, traces and metrics, in Docker) | <http://localhost:18888> |
+| Nitro | <http://localhost:7330/graphql> |
+| Schema as SDL | <http://localhost:7330/graphql?sdl> |
+| Aspire dashboard (logs, traces and metrics, in Docker) | <http://localhost:7332> |
 
 ## Steps
 

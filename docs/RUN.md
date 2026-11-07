@@ -21,19 +21,19 @@ dotnet ef migrations add <Name> --project ./src/Infrastructure --output-dir Data
 dotnet run --project ./src/Presentation
 ```
 
-It listens on <https://localhost:8081>, and on <http://localhost:8080>, which redirects there. If your browser or `curl` doesn't trust the .NET development certificate yet, run `dotnet dev-certs https --trust` once.
+It listens on <https://localhost:7331>, and on <http://localhost:7330>, which redirects there. If your browser or `curl` doesn't trust the .NET development certificate yet, run `dotnet dev-certs https --trust` once.
 
 ## Docker Compose
 
-`docker-compose.yml` starts the app, and the [Aspire dashboard](https://learn.microsoft.com/dotnet/aspire/fundamentals/dashboard/standalone), which shows its logs, traces and metrics. The app sends everything to an [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/), and the collector forwards it to the dashboard, the same shape as a production setup. The dashboard is only a container that receives OTLP; nothing in the solution depends on Aspire. The dashboard has no login and the collector accepts OTLP from anyone on ports 4317 and 4318. That's on purpose for a developer's machine, so don't run this compose file anywhere other people can reach.
+`docker-compose.yml` starts the app, and the [Aspire dashboard](https://learn.microsoft.com/dotnet/aspire/fundamentals/dashboard/standalone), which shows its logs, traces and metrics. The app sends everything to an [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/), and the collector forwards it to the dashboard, the same shape as a production setup. The dashboard is only a container that receives OTLP; nothing in the solution depends on Aspire. The dashboard has no login and the collector accepts OTLP from anyone on ports 7333 and 7334. That's on purpose for a developer's machine, so don't run this compose file anywhere other people can reach.
 
 ``` bash
 docker compose up -d --build
 ```
 
-- App: <http://localhost:8080/graphql> (Nitro)
-- Aspire dashboard: <http://localhost:18888>
-- Health checks: <http://localhost:8080/health/live> (the process is up) and <http://localhost:8080/health/ready> (the database can be reached). Both answer without a token. The image's `HEALTHCHECK` uses the live one.
+- App: <http://localhost:7330/graphql> (Nitro)
+- Aspire dashboard: <http://localhost:7332>
+- Health checks: <http://localhost:7330/health/live> (the process is up) and <http://localhost:7330/health/ready> (the database can be reached). Both answer without a token. The image's `HEALTHCHECK` uses the live one.
 
 The container runs as the image's non-root `app` user.
 
@@ -42,6 +42,20 @@ To shut the containers down:
 ``` bash
 docker compose down
 ```
+
+## Ports
+
+Every Lean Mean Clean template has its own block of ten ports on your machine, so this solution runs beside one made from another template without a clash. This one uses 7330 to 7339:
+
+| Port | What listens |
+| --- | --- |
+| 7330 | The app over HTTP, from Docker Compose or `dotnet run` |
+| 7331 | The app over HTTPS, `dotnet run` only |
+| 7332 | The Aspire dashboard |
+| 7333 | The OpenTelemetry Collector, OTLP over gRPC |
+| 7334 | The OpenTelemetry Collector, OTLP over HTTP |
+
+The app listens on 7330 everywhere: under `dotnet run`, inside its container and on your machine, so `docker run -p 7330:7330` works the same way. The dashboard and collector keep their usual ports inside their containers. To move the app, change `applicationUrl` in `launchSettings.json`, `ASPNETCORE_HTTP_PORTS`, `EXPOSE` and the `HEALTHCHECK` in the `Dockerfile`, and its mapping in `docker-compose.yml`. When you deploy the image, point the platform's target port at 7330. 7335 to 7339 are spare for anything you add.
 
 ## Telemetry
 
@@ -53,14 +67,14 @@ To see a `dotnet run` in the dashboard, start the collector and the dashboard, a
 
 ``` bash
 docker compose up -d otel-collector
-OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317 dotnet run --project ./src/Presentation
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:7333 dotnet run --project ./src/Presentation
 ```
 
 Every span, metric and log carries `service.version`, so you can always tell which build sent it.
 
 ## HTTPS
 
-The app redirects HTTP to HTTPS whenever it has an HTTPS port, which is why `dotnet run` sends <http://localhost:8080> on to <https://localhost:8081>. Outside the `local` and `Development` environments it also sends an HSTS header. The container only listens on HTTP, so in production put it behind a proxy or load balancer that ends TLS, and set `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true` so the app knows the original request was HTTPS.
+The app redirects HTTP to HTTPS whenever it has an HTTPS port, which is why `dotnet run` sends <http://localhost:7330> on to <https://localhost:7331>. Outside the `local` and `Development` environments it also sends an HSTS header. The container only listens on HTTP, so in production put it behind a proxy or load balancer that ends TLS, and set `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true` so the app knows the original request was HTTPS.
 
 ## Tests
 

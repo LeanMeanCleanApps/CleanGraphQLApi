@@ -8,7 +8,7 @@
     <Authors>Stephen Walsh</Authors>
     <Description>A dotnet new template for a GraphQL API using Hot Chocolate, built with a streamlined Clean Architecture on .NET 10.</Description>
     <PackageTags>dotnet;csharp;dotnet-template;template;clean-architecture;cqrs;mediator;fluentvalidation;mapperly;entity-framework-core;docker;aspnetcore;graphql;hotchocolate;clean;cleanarchitecture;lmc;lmca;leanmeanclean;leanmeancleanapps;project-template;solution-template;net10;dotnet10;sqlite;efcore;serilog;opentelemetry;graph;graphql-api;graphql-server;hot-chocolate;chillicream;relay;dataloader;nitro;api</PackageTags>
-    <PackageProjectUrl>https://leanmeancleanapps.github.io/graphql/</PackageProjectUrl>
+    <PackageProjectUrl>https://leanmeanclean.dev/graphql/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/LeanMeanCleanApps/CleanGraphQLApi</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseFile>docs/LICENSE.md</PackageLicenseFile>
